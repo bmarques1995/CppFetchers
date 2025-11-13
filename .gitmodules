@@ -1,0 +1,4 @@
+[submodule "RepoFetcher/vendor/nlohmann_json"]
+	path = RepoFetcher/vendor/nlohmann_json
+	url = https://github.com/nlohmann/json.git
+	branch = master

@@ -3,10 +3,12 @@
 #
 
 # Adicione a origem ao executável deste projeto.
-add_executable (RepoFetcher "RepoFetcher.cpp" "RepoFetcher.h")
 
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET RepoFetcher PROPERTY CXX_STANDARD 20)
-endif()
+file(GLOB_RECURSE REPO_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.cpp")
+file(GLOB_RECURSE REPO_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.hpp")
+
+add_executable(RepoFetcher ${REPO_SRCS} ${REPO_HDRS})
+
+set_property(TARGET RepoFetcher PROPERTY CXX_STANDARD 20)
 
 # TODO: Adicione testes e instale destinos, se necessário.

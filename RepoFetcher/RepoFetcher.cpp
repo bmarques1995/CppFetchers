@@ -1,12 +1,10 @@
 ﻿// RepoFetcher.cpp: define o ponto de entrada para o aplicativo.
 //
 
-#include "RepoFetcher.h"
-
-using namespace std;
+#include "RepoFetcher.hpp"
 
 int main()
 {
-	cout << "Hello CMake." << endl;
+	std::cout << "Hello CMake." << std::endl;
 	return 0;
 }

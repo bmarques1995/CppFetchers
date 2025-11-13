@@ -1,7 +1,7 @@
 ﻿# CMakeList.txt: arquivo de projeto de CMake de nível superior, fazer configuração global
 # e inclua subprojetos aqui.
 #
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.22)
 
 # Habilite a Recarga Dinâmica para compiladores MSVC, se houver suporte.
 if (POLICY CMP0141)
