@@ -29,13 +29,14 @@ int main(int argc, char** argv)
 "git": {
 "location": "https://github.com/libsdl-org/SDL.git",
 "output_suffix": "sdl3",
-"branch": "default",
+"branch": "",
 "commit": "latest",
-"patch": "drop"
+"patch": ""
 
 },
 "cmake": {
 "build_system": "default",
+"relative_root_location": "",
 "flags": ["-DBUILD_SHARED_LIBS=ON"]
 }
 })";
