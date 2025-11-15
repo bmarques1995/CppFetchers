@@ -2,12 +2,18 @@
 #include <iostream>
 #include <cstring>
 #include <sstream>
+#include <algorithm>
+#include <filesystem>
 
 #ifdef WIN32
 #include <windows.h>
 #elif defined(__linux__) || defined(__FreeBSD__)
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #endif
+
+std::string ProcessDispatcher::s_ExecutableLocation = "";
 
 namespace ProcessDispatcherSource
 {
@@ -38,6 +44,16 @@ bool ProcessDispatcher::ExecuteCommand(std::string_view command, const std::vect
 #endif
 }
 
+void ProcessDispatcher::SetExecutableLocation(std::string_view location)
+{
+    s_ExecutableLocation = location;
+}
+
+const std::string& ProcessDispatcher::GetExecutableLocation()
+{
+    return s_ExecutableLocation;
+}
+
 #ifdef WIN32
 bool ProcessDispatcherSource::SearchExecutableLocationOnWindows(std::string_view programName)
 {
@@ -54,12 +70,16 @@ bool ProcessDispatcherSource::SearchExecutableLocationOnWindows(std::string_view
 
 bool ProcessDispatcherSource::ExecuteCommandOnWindows(std::string_view command, const std::vector<std::string>& arguments, const std::string& workingDirectory)
 {
-	SetCurrentDirectoryA(workingDirectory.c_str());
+    std::string path = workingDirectory;
+    std::replace(path.begin(), path.end(), '/', '\\');
+	SetCurrentDirectoryA(path.c_str());
     std::string programName = command.data();
     //programName = programName + ".exe";
     std::string cmd = programName;
     for (auto& a : arguments)
         cmd += " " + a;
+
+	std::cout << cmd << "\n";
 
     STARTUPINFOA si{};
     PROCESS_INFORMATION pi{};
@@ -71,13 +91,13 @@ bool ProcessDispatcherSource::ExecuteCommandOnWindows(std::string_view command, 
     uint32_t processCreationFlags = 0;
 
     if (!CreateProcessA(
-        nullptr,            // If program is on PATH, pass NULL and include exe name in buffer
-        (LPSTR)cmd.c_str(),      // Mutable command line
-        nullptr, nullptr,   // Security
-        FALSE,              // Inherit handles
-        processCreationFlags,                  // Flags
-        nullptr,            // Environment
-        workingDirectory.c_str(),            // Working dir
+        nullptr,                             // If program is on PATH, pass NULL and include exe name in buffer
+        (LPSTR)cmd.c_str(),                  // Mutable command line
+        nullptr, nullptr,                    // Security
+        FALSE,                               // Inherit handles
+        processCreationFlags,                // Flags
+        nullptr,                             // Environment
+        path.c_str(),                        // Working dir
         &si,
         &pi))
     {
@@ -91,6 +111,9 @@ bool ProcessDispatcherSource::ExecuteCommandOnWindows(std::string_view command, 
 
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
+
+    std::string executableLocation = ProcessDispatcher::GetExecutableLocation();
+    SetCurrentDirectoryA(executableLocation.c_str());
 
     return exitCode == 0;
 }
@@ -128,10 +151,30 @@ bool ProcessDispatcherSource::ExecuteCommandOnUnix(std::string_view command, con
     for (auto& a : arguments)
         c_args.push_back(a.data());
     c_args.push_back(nullptr);
-    auto exec_return = execvp(command.data(), (char *const *)c_args.data());
-    return exec_return 
 
+    pid_t pid = fork();
 
+    if (pid == -1) {
+        perror("fork failed");
+        return false;
+    }
+
+    if (pid == 0) {
+        // --- Child: runs the external program ---
+        std::filesystem::current_path(workingDirectory.data());
+        execvp(command.data(), (char *const *)c_args.data());
+
+        // Only executed if execvp fails
+        perror("execvp failed");
+        _exit(1);
+    }
+
+    // --- Parent: wait for the child to finish ---
+    int status = 0;
+    waitpid(pid, &status, 0);
+
+    std::cout << "Program executed" << "\n";
+    return true;
 }
 
 #endif
