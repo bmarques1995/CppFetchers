@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "type": "lldb-dap",
+            "request": "launch",
+            "name": "Linux Debug",
+            "program": "${workspaceFolder}/out/build/linux-debug/RepoFetcher/RepoFetcher",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "/mnt/d/cpp/CppFetchers/samples/flatbuffers.cmake.json",
+                "Debug",
+                "/mnt/d/cpp/CppFetchers/Linux/Debug",
+                "/mnt/d/cpp/CppFetchers",
+            ],
+        }
+    ],
+}

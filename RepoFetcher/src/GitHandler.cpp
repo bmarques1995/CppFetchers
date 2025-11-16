@@ -1,0 +1,74 @@
+#include "GitHandler.hpp"
+#include <sstream>
+#include "ProcessDispatcher.hpp"
+
+std::string GitHandler::s_ModuleInfix = "modules";
+std::string GitHandler::s_PatchesRelativePath = "patches";
+bool GitHandler::CloneRepository(std::string_view url, std::string_view repoSuffix, std::string_view projectDirectory, std::string_view branch)
+{
+    std::vector<std::string> args;
+	args.push_back("clone");
+	args.push_back("--recursive");
+	if (branch.length() > 0)
+	{
+		args.push_back("--branch");
+		args.push_back(branch.data());
+	}
+	args.push_back(url.data());
+	std::string rawDirectory = projectDirectory.data();
+	/*Mover para classe Sanitizers*/
+	if (rawDirectory[rawDirectory.length() - 1] == '/' || rawDirectory[rawDirectory.length() - 1] == '\\')
+	{
+		rawDirectory = rawDirectory.substr(0, rawDirectory.length() - 1);
+	}
+	std::stringstream dirStream;
+	dirStream << projectDirectory.data() << "/" << s_ModuleInfix << "/" << repoSuffix.data();
+	std::string directory = dirStream.str();
+	args.push_back(directory);
+    return ProcessDispatcher::ExecuteCommand("git", args, ProcessDispatcher::GetExecutableLocation());
+}
+
+bool GitHandler::ApplyPatch(std::string_view directory, std::string_view patchDirectory)
+{
+	std::vector<std::string> args;
+	args.push_back("apply");
+	args.push_back("-v");
+	std::stringstream patchStream;
+#ifdef WIN32
+	patchStream << "\"" << patchDirectory.data() << "\"";
+#else
+	patchStream << patchDirectory.data();
+#endif
+	args.push_back(patchStream.str());
+	return ProcessDispatcher::ExecuteCommand("git", args, directory.data());
+}
+
+bool GitHandler::Rollback(std::string_view directory, std::string_view commitHash)
+{
+	std::vector<std::string> args;
+	args.push_back("reset");
+	args.push_back("--hard");
+	args.push_back(commitHash.data());
+	return ProcessDispatcher::ExecuteCommand("git", args, directory.data());
+}
+
+void GitHandler::SetPatchesRelativePath(std::string_view path)
+{
+	s_PatchesRelativePath = path;
+}
+
+const std::string& GitHandler::GetPatchesRelativePath()
+{
+	// TODO: inserir instrução return aqui
+	return s_PatchesRelativePath;
+}
+
+void GitHandler::SetModuleInfix(std::string_view infix)
+{
+    s_ModuleInfix = infix;
+}
+
+const std::string& GitHandler::GetModuleInfix()
+{
+	return s_ModuleInfix;
+}

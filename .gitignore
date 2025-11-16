@@ -34,6 +34,15 @@ bld/
 [Oo]ut/
 [Ll]og/
 [Ll]ogs/
+[Ww]indows/
+[Ll]inux/
+[Ff]ree[Bb][Ss][Dd]/
+[Oo]sx/
+[Oo]sx64/
+[Oo]sx86/
+[Oo]s64/
+[Oo]s32/
+[Oo]s/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/

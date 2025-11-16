@@ -1,0 +1,34 @@
+
+{
+  "git": {
+    "location": "https://github.com/google/flatbuffers.git",
+    "output_suffix": "flatbuffers",
+    "branch": "",
+    "commit": "1c514626e83c20fffa8557e75641848e1e15cd5e",
+    "patch": "flatbuffers.patch"
+
+  },
+  "cmake": {
+    "build_system": "default",
+    "relative_root_location": "",
+    "flags": [ "-DFLATBUFFERS_BUILD_SHAREDLIB=ON" ],
+    "os_properties": {
+      "windows": {
+        "c_compiler": "cl",
+        "cxx_compiler": "cl"
+      },
+      "linux": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++"
+      },
+      "macos": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++"
+      },
+      "freebsd": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++"
+      }
+    }
+  }
+}

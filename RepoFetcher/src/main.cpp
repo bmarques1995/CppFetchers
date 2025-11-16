@@ -2,19 +2,38 @@
 //
 
 #include <iostream>
+#include <fstream>
 #include "ProcessDispatcher.hpp"
 #include "CmakeBuilder.hpp"
 #include <nlohmann/json.hpp>
 #include <cstdlib>
 #include <filesystem>
-#include "GitCloner.hpp"
+#include "GitHandler.hpp"
+#include "FileHandler.hpp"
+#include <unordered_map>
+#include <functional>
 
+const std::unordered_map<std::string, std::function<void(const nlohmann::json&)>> s_BuildVendors =
+{ 
+	{
+		".cmake", [](const nlohmann::json& cmakeInfo)
+		{
+			CmakeBuilder::GenCmakeSolution(cmakeInfo);
+			CmakeBuilder::BuildAndInstallCmakeSolution(cmakeInfo);
+		}
+	}
+};
+
+
+
+std::string GetAbsoluteLocation(const std::string& path);
 int main(int argc, char** argv)
 {
-	/*if (argc < 5)
+	//1, 3, 4 e 5
+	if (argc < 5)
 	{
 		std::cout << "Usage: " << argv[0] << " <json_file> <build_mode> <install_prefix> <module_destination> [<compiler_path>]\n";
-	}*/
+	}
 
 	bool gitFound = ProcessDispatcher::SearchExecutableLocation("git");
 	bool cmakeFound = ProcessDispatcher::SearchExecutableLocation("cmake");
@@ -25,23 +44,24 @@ int main(int argc, char** argv)
 		std::exit(65);
 	}
 
-	const std::string jsonRepo = R"({
-"git": {
-"location": "https://github.com/libsdl-org/SDL.git",
-"output_suffix": "sdl3",
-"branch": "",
-"commit": "latest",
-"patch": ""
+	std::filesystem::path jsonInput = GetAbsoluteLocation(argv[1]);
+	if (!FileHandler::FileExists(jsonInput.string()))
+	{
+		std::cout << "File " << argv[1] << " does not exist\n";
+		std::exit(65);
+	}
+	std::string vendor = jsonInput.filename().stem().extension().string();
 
-},
-"cmake": {
-"build_system": "default",
-"relative_root_location": "",
-"flags": ["-DBUILD_SHARED_LIBS=ON"]
-}
-})";
+	auto vendorIt = s_BuildVendors.find(vendor);
+	if (vendorIt == s_BuildVendors.end())
+	{
+		std::cerr << "Vendor " << vendor << " not supported\n";
+		std::exit(65);
+	}
 
-
+	std::string jsonRepo;
+	FileHandler::ReadTextFile(GetAbsoluteLocation(argv[1]), &jsonRepo);
+	std::ifstream f(jsonRepo);
 	nlohmann::json data = nlohmann::json::parse(jsonRepo);
 	
 	//std::cout << data["git"]["location"] << "\n";
@@ -54,22 +74,52 @@ int main(int argc, char** argv)
 	ProcessDispatcher::SetExecutableLocation(currentPath);
 	if (gitFound)
 	{
-		std::string outputSuffix = data["git"]["output_suffix"];
-#ifdef WIN32
-		GitCloner::CloneRepository("https://github.com/libsdl-org/SDL.git", outputSuffix, "D:\\cpp\\CppFetchers");
-#elif defined(__linux__)
-		GitCloner::CloneRepository("https://github.com/libsdl-org/SDL.git", outputSuffix, "/mnt/d/cpp/CppFetchers");
-#endif
-		//ProcessDispatcher::ExecuteCommand("git", {"clone", "https://github.com/libsdl-org/SDL.git"});
+		std::string outputSuffix = data["git"]["output_suffix"].get<std::string>();;
+		std::string repoLocation = data["git"]["location"].get<std::string>();;
+		GitHandler::CloneRepository(repoLocation, outputSuffix, GetAbsoluteLocation(argv[4]));
+		std::stringstream outputRepoDirStream;
+		outputRepoDirStream << argv[4] << "/" << GitHandler::GetModuleInfix() << "/" << outputSuffix;
+		std::string outputRepoDir = GetAbsoluteLocation(outputRepoDirStream.str());
+		outputRepoDirStream.str("");
+		if(!(data["git"]["commit"].is_null()))
+		{
+			std::string commitHash = data["git"]["commit"].get<std::string>();
+			GitHandler::Rollback(outputRepoDir, commitHash);
+		}
+		std::string patch = data["git"]["patch"].is_null() ? "" : data["git"]["patch"].get<std::string>();
+		if (patch.compare("") != 0)
+		{
+			outputRepoDirStream << argv[4] << "/" << GitHandler::GetPatchesRelativePath() << "/" << data["git"]["patch"].get<std::string>();
+			std::string patchDir = GetAbsoluteLocation(outputRepoDirStream.str());
+			outputRepoDirStream.str("");
+			GitHandler::ApplyPatch(outputRepoDir, patchDir);
+		}
 	}
 	if (cmakeFound)
 	{
+		auto cmakeInfo = data["cmake"].get<nlohmann::json>();
+		cmakeInfo["module_destination"] = GetAbsoluteLocation(argv[4]);
+		cmakeInfo["build_mode"] = argv[2];
+		cmakeInfo["install_prefix"] = GetAbsoluteLocation(argv[3]);
+		cmakeInfo["module_path_name"] = data["git"]["output_suffix"].get<std::string>();
 #ifdef WIN32
-		CmakeBuilder::BuildCmakeProject("sdl3", "D:\\cpp\\CppFetchers", "Debug", "D:\\cpp\\CppFetchers\\Windows\\Debug", "default", data["cmake"]["flags"]);
-#elif defined(__linux__)
-		CmakeBuilder::BuildCmakeProject("sdl3", "/mnt/d/cpp/CppFetchers", "Debug", "/mnt/d/cpp/CppFetchers/Linux/Debug", "default", data["cmake"]["flags"]);
+		if(argc > 5)
+			cmakeInfo["compiler_path"] = argv[5];
 #endif
+		vendorIt->second(cmakeInfo);
 	}
 
 	return 0;
+}
+
+std::string GetAbsoluteLocation(const std::string& path)
+{
+	if (path.starts_with("."))
+	{
+		std::filesystem::path absolutePath = std::filesystem::absolute(path);
+		std::cout << absolutePath.string() << "\n";
+		return absolutePath.string();
+	}
+	else
+		return path;
 }

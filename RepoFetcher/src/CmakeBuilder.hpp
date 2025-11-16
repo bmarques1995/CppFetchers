@@ -2,31 +2,19 @@
 
 #include <string>
 #include <vector>
+#include <nlohmann/json.hpp>
 
 class CmakeBuilder
 {
 public:
-	static void BuildCmakeProject
-	(
-		std::string_view modulePathName,
-		std::string_view moduleDestination,
-		std::string_view buildMode,
-		std::string_view installPrefix,
-		std::string_view generator,
-		const std::vector<std::string>& flags,
-		std::string_view compilerPath = ""
-	);
+	static void GenCmakeSolution(const nlohmann::json& data);
+	static void BuildAndInstallCmakeSolution(const nlohmann::json& data);
 
 private:
-	static void GetCmakeGenCommandArgList
-	(
-		std::string_view modulePathName,
-		std::string_view moduleDestination,
-		std::string_view buildMode,
-		std::string_view installPrefix,
-		std::string_view generator,
-		const std::vector<std::string>& flags,
-		std::string_view compilerPath,
-		std::vector<std::string>* buildArgs
-	);
+	static void GetCmakeGenCommandArgList(const nlohmann::json& data, std::vector<std::string>* buildArgs);
+	static std::string GetCmakeBuildCommandArgList(const nlohmann::json& data, std::vector<std::string>* buildArgs);
+
+	static void AppendFlags(std::vector<std::string>* buildArgs, const std::vector<std::string>& flags);
+
+	static std::string s_SystemName;
 };

@@ -79,8 +79,6 @@ bool ProcessDispatcherSource::ExecuteCommandOnWindows(std::string_view command, 
     for (auto& a : arguments)
         cmd += " " + a;
 
-	std::cout << cmd << "\n";
-
     STARTUPINFOA si{};
     PROCESS_INFORMATION pi{};
     si.cb = sizeof(si);
@@ -149,7 +147,7 @@ bool ProcessDispatcherSource::ExecuteCommandOnUnix(std::string_view command, con
     //argv.push_back(const_cast<char*>(command.data()));
     c_args.push_back(command.data());
     for (auto& a : arguments)
-        c_args.push_back(a.data());
+        c_args.push_back(a.c_str());
     c_args.push_back(nullptr);
 
     pid_t pid = fork();
