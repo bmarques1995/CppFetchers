@@ -7,6 +7,7 @@
 
 #ifdef WIN32
 #include <windows.h>
+#include <regex>
 #elif defined(__linux__) || defined(__FreeBSD__)
 #include <unistd.h>
 #include <sys/types.h>
@@ -20,9 +21,11 @@ namespace ProcessDispatcherSource
 #ifdef WIN32
 	bool SearchExecutableLocationOnWindows(std::string_view programName);
 	bool ExecuteCommandOnWindows(std::string_view command, const std::vector<std::string>& arguments, const std::string& workingDirectory);
+    void AppendDirectoryToPathOnWindows(std::string_view directory);
 #elif defined(__linux__) || defined(__FreeBSD__)
     bool SearchExecutableLocationOnUnix(std::string_view programName);
     bool ExecuteCommandOnUnix(std::string_view command, const std::vector<std::string>& arguments, const std::string& workingDirectory);
+    void AppendDirectoryToPathOnUnix(std::string_view directory);
 #endif // WIN32
 }
 
@@ -44,6 +47,15 @@ bool ProcessDispatcher::ExecuteCommand(std::string_view command, const std::vect
 #endif
 }
 
+void ProcessDispatcher::AppendDirectoryToPath(std::string_view directory)
+{
+#ifdef WIN32
+    return ProcessDispatcherSource::AppendDirectoryToPathOnWindows(directory);
+#elif defined(__linux__) || defined(__FreeBSD__)
+    return ProcessDispatcherSource::AppendDirectoryToPathOnUnix(directory);
+#endif
+}
+
 void ProcessDispatcher::SetExecutableLocation(std::string_view location)
 {
     s_ExecutableLocation = location;
@@ -55,6 +67,137 @@ const std::string& ProcessDispatcher::GetExecutableLocation()
 }
 
 #ifdef WIN32
+
+std::string ProcessDispatcher::ExtractVSBasePath(const std::string& path)
+{
+    std::string copyPath = std::regex_replace(path, std::regex("/"), "\\");
+    std::regex re(R"(.*(?:Community|Enterprise|Professional))");
+    std::smatch match;
+
+    if (std::regex_search(copyPath, match, re)) {
+        std::string editionPath = match[0].str();
+        std::replace(editionPath.begin(), editionPath.end(), '/', '\\');
+        return editionPath;
+    }
+
+    return "";
+}
+
+std::string ProcessDispatcher::ValidateVSNinjaPath(const std::string& path)
+{
+    std::filesystem::path ninjaPath(path);
+
+    if (std::filesystem::exists(ninjaPath))
+        ninjaPath /= "Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja";
+    if (std::filesystem::exists(ninjaPath))
+    {
+        std::string ninjaPathStr = ninjaPath.string();
+        std::replace(ninjaPathStr.begin(), ninjaPathStr.end(), '/', '\\');
+        return ninjaPathStr;
+    }
+    return "";
+}
+
+std::string ProcessDispatcher::ValidateVCEnvPath(const std::string& path)
+{
+    std::filesystem::path vcEnvPath(path);
+
+    if (std::filesystem::exists(vcEnvPath))
+        vcEnvPath /= "VC/Auxiliary/Build/vcvars64.bat";
+    if (std::filesystem::exists(vcEnvPath))
+    {
+        std::string ninjaPathStr = vcEnvPath.string();
+        std::replace(ninjaPathStr.begin(), ninjaPathStr.end(), '/', '\\');
+        return ninjaPathStr;
+    }
+    return "";
+}
+
+void ProcessDispatcher::InitVCEnv(const std::string& cmd)
+{
+    HANDLE r, w;
+    //cmd.exe / c \"vcvars64.bat >nul && set\"
+    std::string treatedCmd = cmd;
+    treatedCmd = std::regex_replace(treatedCmd, std::regex(" "), "^ ");
+    std::string command = "cmd.exe /c \"" + treatedCmd + " > nul && set\"";
+    SECURITY_ATTRIBUTES sa = { sizeof(SECURITY_ATTRIBUTES), NULL, TRUE };
+    CreatePipe(&r, &w, &sa, 0);
+    SetHandleInformation(r, HANDLE_FLAG_INHERIT, 0);
+
+    PROCESS_INFORMATION pi{};
+    STARTUPINFOA si{};
+    si.cb = sizeof(si);
+    si.hStdOutput = w;
+    si.hStdError = w;
+    si.dwFlags |= STARTF_USESTDHANDLES;
+
+    CreateProcessA(
+        NULL,
+        (LPSTR)command.c_str(),
+        NULL, NULL, TRUE,
+        CREATE_NO_WINDOW,
+        NULL, NULL,
+        &si, &pi
+    );
+
+    CloseHandle(w);
+
+    std::string output;
+    char buffer[4096];
+    DWORD read;
+    while (ReadFile(r, buffer, sizeof(buffer), &read, NULL) && read > 0) {
+        output.append(buffer, read);
+    }
+
+    CloseHandle(r);
+    WaitForSingleObject(pi.hProcess, INFINITE);
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+
+    ApplyEnvironment(output);
+
+    //char* path = new char[32768];
+    //GetEnvironmentVariableA("PATH", path, 32768);
+    //std::cout << path << std::endl;
+    //delete[] path;
+
+}
+
+void ProcessDispatcher::ApplyEnvironment(const std::string& envText)
+{
+    size_t pos = 0;
+    size_t len = envText.size();
+
+    while (pos < len)
+    {
+        // Find end of line
+        size_t end = envText.find('\n', pos);
+        if (end == std::string::npos)
+            end = len;
+
+        // Extract line (trim CR if present)
+        std::string line = envText.substr(pos, end - pos);
+        if (!line.empty() && line.back() == '\r')
+            line.pop_back();
+
+        pos = end + 1;
+
+        // Find VAR=VALUE
+        size_t eq = line.find('=');
+        if (eq == std::string::npos)
+            continue;
+
+        std::string key = line.substr(0, eq);
+        std::string value = line.substr(eq + 1);
+
+        if (!key.empty())
+        {
+            // Apply to this process' environment
+            SetEnvironmentVariableA(key.c_str(), value.c_str());
+        }
+    }
+}
+
 bool ProcessDispatcherSource::SearchExecutableLocationOnWindows(std::string_view programName)
 {
     std::string programFullName = programName.data();
@@ -116,6 +259,19 @@ bool ProcessDispatcherSource::ExecuteCommandOnWindows(std::string_view command, 
     return exitCode == 0;
 }
 
+void ProcessDispatcherSource::AppendDirectoryToPathOnWindows(std::string_view directory)
+{
+    char* path = new char[32768];
+    GetEnvironmentVariableA("PATH", path, 32768);
+	std::stringstream pathStream;
+	std::string pathPart;
+    pathStream << directory << ";" << path;
+    std::string treatedPath = pathStream.str();
+    delete[] path;
+	std::replace(treatedPath.begin(), treatedPath.end(), '/', '\\');
+	SetEnvironmentVariableA("PATH", treatedPath.c_str());
+}
+
 #elif defined(__linux__) || defined(__FreeBSD__)
 bool ProcessDispatcherSource::SearchExecutableLocationOnUnix(std::string_view programName)
 {
@@ -173,6 +329,16 @@ bool ProcessDispatcherSource::ExecuteCommandOnUnix(std::string_view command, con
 
     std::cout << "Program executed" << "\n";
     return true;
+}
+
+void ProcessDispatcherSource::AppendDirectoryToPathOnUnix(std::string_view directory)
+{
+	std::string path = getenv("PATH");
+	std::stringstream pathStream(path);
+	std::string pathPart;
+	pathStream << ":" << directory.data();
+	std::string treatedPath = pathStream.str();
+	setenv("PATH", treatedPath.c_str(), 1);
 }
 
 #endif

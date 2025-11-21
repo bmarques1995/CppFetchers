@@ -84,7 +84,10 @@ int main(int argc, char** argv)
 		if(!(data["git"]["commit"].is_null()))
 		{
 			std::string commitHash = data["git"]["commit"].get<std::string>();
-			GitHandler::Rollback(outputRepoDir, commitHash);
+			if (commitHash.compare("") != 0)
+			{
+				GitHandler::Rollback(outputRepoDir, commitHash);
+			}	
 		}
 		std::string patch = data["git"]["patch"].is_null() ? "" : data["git"]["patch"].get<std::string>();
 		if (patch.compare("") != 0)
@@ -104,7 +107,14 @@ int main(int argc, char** argv)
 		cmakeInfo["module_path_name"] = data["git"]["output_suffix"].get<std::string>();
 #ifdef WIN32
 		if(argc > 5)
+		{
 			cmakeInfo["compiler_path"] = argv[5];
+			std::string vsBasePath = ProcessDispatcher::ExtractVSBasePath(argv[5]);
+			std::string vcEnvPath = ProcessDispatcher::ValidateVCEnvPath(vsBasePath);
+			std::string ninjaPath = ProcessDispatcher::ValidateVSNinjaPath(vsBasePath);
+			ProcessDispatcher::InitVCEnv(vcEnvPath);
+			ProcessDispatcher::AppendDirectoryToPath(ninjaPath);
+		}
 #endif
 		vendorIt->second(cmakeInfo);
 	}

@@ -1,0 +1,38 @@
+
+{
+  "git": {
+    "location": "https://code.qt.io/qt/qtbase.git",
+    "output_suffix": "qtbase",
+    "branch": "6.10.0",
+    "commit": "",
+    "patch": ""
+
+  },
+  "cmake": {
+    "build_system": "ninja",
+    "relative_root_location": "",
+    "flags": [ "-DQT_FEATURE_force_bundled_libs=ON" ],
+    "os_properties": {
+      "windows": {
+        "c_compiler": "cl",
+        "cxx_compiler": "cl",
+        "flags": [ "-DCMAKE_ASM_COMPILER=ml64" ]
+      },
+      "linux": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++",
+        "flags": [ "-DCMAKE_ASM_COMPILER=nasm" ]
+      },
+      "macos": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++",
+        "flags": [ "-DCMAKE_ASM_COMPILER=nasm" ]
+      },
+      "freebsd": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++",
+        "flags": [ "-DCMAKE_ASM_COMPILER=nasm" ]
+      }
+    }
+  }
+}

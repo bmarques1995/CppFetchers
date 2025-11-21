@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #ifdef WIN32
+#include <windows.h>
 std::string CmakeBuilder::s_SystemName = "windows";
 #elif defined(__linux__)
 std::string CmakeBuilder::s_SystemName = "linux";
@@ -66,7 +67,13 @@ void CmakeBuilder::GetCmakeGenCommandArgList(const nlohmann::json& data, std::ve
 	if (data.contains("flags"))
 	{
 		flags = data["flags"].get<std::vector<std::string>>();
-	} 
+	}
+	std::string osFieldPrefix = "os_properties";
+	if (data[osFieldPrefix][s_SystemName].contains("flags"))
+	{
+		std::vector<std::string> systemFlags = data[osFieldPrefix][s_SystemName]["flags"].get<std::vector<std::string>>();
+		flags.insert(flags.end(), systemFlags.begin(), systemFlags.end());
+	}
 	
 	pathBuilder << moduleDestination << "/" << GitHandler::GetModuleInfix() << "/" << modulePathName;
 	if (relativeRootLocation.length() > 0)
@@ -94,6 +101,9 @@ void CmakeBuilder::GetCmakeGenCommandArgList(const nlohmann::json& data, std::ve
 	if (generator.compare("default") != 0)
 	{
 		buildArgs->push_back("-G");
+		if (!generator.empty()) {
+			generator[0] = std::toupper(generator[0]);
+		}
 		buildArgs->push_back(generator.data());
 	}
 	
@@ -121,7 +131,6 @@ void CmakeBuilder::GetCmakeGenCommandArgList(const nlohmann::json& data, std::ve
 	
 	
 	AppendFlags(buildArgs, flags);
-	std::string osFieldPrefix = "os_properties";
 	if (!data[osFieldPrefix][s_SystemName].is_null())
 	{
 		if(!data[osFieldPrefix][s_SystemName]["c_compiler"].is_null())
@@ -132,8 +141,6 @@ void CmakeBuilder::GetCmakeGenCommandArgList(const nlohmann::json& data, std::ve
 		{
 			buildArgs->push_back("-DCMAKE_CXX_COMPILER=" + data[osFieldPrefix][s_SystemName]["cxx_compiler"].get<std::string>());
 		}
-		std::vector<std::string> osFlags = data[osFieldPrefix][s_SystemName].contains("flags") ? data[osFieldPrefix][s_SystemName]["flags"].get<std::vector<std::string>>() : std::vector<std::string>();
-		AppendFlags(buildArgs, osFlags);
 	}
 }
 
