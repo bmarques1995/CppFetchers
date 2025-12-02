@@ -5,6 +5,7 @@
 #include "GitHandler.hpp"
 #include <cassert>
 #include <algorithm>
+#include "Utils.hpp"
 
 #ifdef WIN32
 #include <windows.h>
@@ -38,6 +39,29 @@ void CmakeBuilder::BuildAndInstallCmakeSolution(const nlohmann::json& data)
 	);
 	ProcessDispatcher::ExecuteCommand("cmake", buildArgs, buildPath);
 }
+
+#ifdef WIN32
+
+void CmakeBuilder::TreatCmakeInfo(nlohmann::json* info, std::string buildMode, std::string installPrefix, std::string modulePathname, const std::string& compilerPath)
+{
+	std::string vsBasePath = ProcessDispatcher::ExtractVSBasePath(compilerPath);
+	std::string vcEnvPath = ProcessDispatcher::ValidateVCEnvPath(vsBasePath);
+	std::string ninjaPath = ProcessDispatcher::ValidateVSNinjaPath(vsBasePath);
+	ProcessDispatcher::InitVCEnv(vcEnvPath);
+	ProcessDispatcher::AppendDirectoryToPath(ninjaPath);
+	TreatCmakeInfo(info, buildMode, installPrefix, modulePathname);
+}
+
+#endif // WIN32
+
+void CmakeBuilder::TreatCmakeInfo(nlohmann::json* info, std::string buildMode, std::string installPrefix, std::string modulePathname)
+{
+	(*info)["cmake"]["module_destination"] = Utils::GetAbsoluteLocation(modulePathname);
+	(*info)["cmake"]["build_mode"] = buildMode;
+	(*info)["cmake"]["install_prefix"] = Utils::GetAbsoluteLocation(installPrefix);
+	(*info)["cmake"]["module_path_name"] = (*info)["git"]["output_suffix"].get<std::string>();
+}
+
 
 void CmakeBuilder::GetCmakeGenCommandArgList(const nlohmann::json& data, std::vector<std::string>* buildArgs)
 {

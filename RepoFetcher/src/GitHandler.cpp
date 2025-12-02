@@ -1,9 +1,37 @@
 #include "GitHandler.hpp"
 #include <sstream>
 #include "ProcessDispatcher.hpp"
+#include "Utils.hpp"
 
 std::string GitHandler::s_ModuleInfix = "modules";
 std::string GitHandler::s_PatchesRelativePath = "patches";
+
+void GitHandler::ExecuteGitBatch(const nlohmann::json& data, const std::string& moduleDestination)
+{
+	std::string outputSuffix = data["git"]["output_suffix"].get<std::string>();;
+	std::string repoLocation = data["git"]["location"].get<std::string>();;
+	GitHandler::CloneRepository(repoLocation, outputSuffix, Utils::GetAbsoluteLocation(moduleDestination));
+	std::stringstream outputRepoDirStream;
+	outputRepoDirStream << moduleDestination << "/" << GitHandler::GetModuleInfix() << "/" << outputSuffix;
+	std::string outputRepoDir = Utils::GetAbsoluteLocation(outputRepoDirStream.str());
+	outputRepoDirStream.str("");
+	if (!(data["git"]["commit"].is_null()))
+	{
+		std::string commitHash = data["git"]["commit"].get<std::string>();
+		if (commitHash.compare("") != 0)
+		{
+			GitHandler::Rollback(outputRepoDir, commitHash);
+		}
+	}
+	std::string patch = data["git"]["patch"].is_null() ? "" : data["git"]["patch"].get<std::string>();
+	if (patch.compare("") != 0)
+	{
+		outputRepoDirStream << moduleDestination << "/" << GitHandler::GetPatchesRelativePath() << "/" << data["git"]["patch"].get<std::string>();
+		std::string patchDir = Utils::GetAbsoluteLocation(outputRepoDirStream.str());
+		outputRepoDirStream.str("");
+		GitHandler::ApplyPatch(outputRepoDir, patchDir);
+	}
+}
 bool GitHandler::CloneRepository(std::string_view url, std::string_view repoSuffix, std::string_view projectDirectory, std::string_view branch)
 {
     std::vector<std::string> args;

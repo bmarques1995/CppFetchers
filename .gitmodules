@@ -2,3 +2,6 @@
 	path = RepoFetcher/vendor/nlohmann_json
 	url = https://github.com/nlohmann/json.git
 	branch = master
+[submodule "RepoFetcher/vendor/fmtlib"]
+	path = RepoFetcher/vendor/fmtlib
+	url = https://github.com/fmtlib/fmt
