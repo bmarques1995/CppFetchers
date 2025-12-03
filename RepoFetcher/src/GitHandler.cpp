@@ -2,18 +2,20 @@
 #include <sstream>
 #include "ProcessDispatcher.hpp"
 #include "Utils.hpp"
+#include "Placeholders.hpp"
 
 std::string GitHandler::s_ModuleInfix = "modules";
 std::string GitHandler::s_PatchesRelativePath = "patches";
 
 void GitHandler::ExecuteGitBatch(const nlohmann::json& data, const std::string& moduleDestination)
 {
-	std::string outputSuffix = data["git"]["output_suffix"].get<std::string>();;
-	std::string repoLocation = data["git"]["location"].get<std::string>();;
+	std::string outputSuffix = data["git"]["output_suffix"].get<std::string>();
+	std::string repoLocation = data["git"]["location"].get<std::string>();
 	GitHandler::CloneRepository(repoLocation, outputSuffix, Utils::GetAbsoluteLocation(moduleDestination));
 	std::stringstream outputRepoDirStream;
 	outputRepoDirStream << moduleDestination << "/" << GitHandler::GetModuleInfix() << "/" << outputSuffix;
 	std::string outputRepoDir = Utils::GetAbsoluteLocation(outputRepoDirStream.str());
+	Placeholders::SetPlaceholder("module_path", outputRepoDir);
 	outputRepoDirStream.str("");
 	if (!(data["git"]["commit"].is_null()))
 	{
@@ -23,7 +25,7 @@ void GitHandler::ExecuteGitBatch(const nlohmann::json& data, const std::string& 
 			GitHandler::Rollback(outputRepoDir, commitHash);
 		}
 	}
-	std::string patch = data["git"]["patch"].is_null() ? "" : data["git"]["patch"].get<std::string>();
+	std::string patch = data["git"].contains("patch") ? data["git"]["patch"].get<std::string>() : "";
 	if (patch.compare("") != 0)
 	{
 		outputRepoDirStream << moduleDestination << "/" << GitHandler::GetPatchesRelativePath() << "/" << data["git"]["patch"].get<std::string>();

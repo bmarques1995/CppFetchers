@@ -11,6 +11,8 @@ public:
 	static void SetPlaceholders(const std::string& buildMode, const std::string& installPrefix, const std::string& modulePathname, const std::string& compilerPath);
 #endif // 
 	static std::string GetPlaceholder(std::string key);
+
+	static void SetPlaceholder(std::string key, std::string value);
 private:
 	static std::unordered_map<std::string, std::string> s_Placeholders;
 };

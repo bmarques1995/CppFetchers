@@ -5,6 +5,7 @@
 #include <fstream>
 #include "ProcessDispatcher.hpp"
 #include "CmakeBuilder.hpp"
+#include "CustomBuilder.hpp"
 #include <nlohmann/json.hpp>
 #include <cstdlib>
 #include <filesystem>
@@ -14,6 +15,7 @@
 #include <functional>
 #include "Placeholders.hpp"
 #include "Utils.hpp"
+#include <fmt/core.h>
 
 const std::unordered_map<std::string, std::function<void(nlohmann::json*)>> s_BuildVendors =
 { 
@@ -22,36 +24,51 @@ const std::unordered_map<std::string, std::function<void(nlohmann::json*)>> s_Bu
 		{
 			std::string buildMode = Placeholders::GetPlaceholder("build_mode");
 			std::string installPrefix = Placeholders::GetPlaceholder("install_prefix");
-			std::string modulePathname = Placeholders::GetPlaceholder("module_path_name");
-#ifdef WIN32
-			std::string compilerPath = Placeholders::GetPlaceholder("compiler_path");
-			if (!compilerPath.empty())
-			{
-				CmakeBuilder::TreatCmakeInfo(info, buildMode, installPrefix, modulePathname, compilerPath);
-			}
-			else
-			{
-				CmakeBuilder::TreatCmakeInfo(info, buildMode, installPrefix, modulePathname);
-			}
-#else
+			std::string modulePathname = Placeholders::GetPlaceholder("modules_root");
 			CmakeBuilder::TreatCmakeInfo(info, buildMode, installPrefix, modulePathname);
-#endif
 			auto cmakeInfo = (*info)["cmake"].get<nlohmann::json>();
 			CmakeBuilder::GenCmakeSolution(cmakeInfo);
 			CmakeBuilder::BuildAndInstallCmakeSolution(cmakeInfo);
 		}
+	},
+	{
+		".custom", [](nlohmann::json* info)
+		{
+			CustomBuilder::GenSolution(*info);
+			CustomBuilder::BuildAndInstallSolution(*info);
+		}
 	}
+	
 };
 
-const std::unordered_map<std::string, std::function<bool(const std::string&)>> s_BuildVendorsLocated =
+const std::unordered_map<std::string, std::function<bool(const nlohmann::json&)>> s_BuildVendorsLocated =
 {
 	{
-		".cmake", [](const std::string&) -> bool
+		".cmake", [](const nlohmann::json&) -> bool
 		{
 			std::string program = "cmake";
 			return ProcessDispatcher::SearchExecutableLocation(program);
 		}
-	
+	},
+	{
+		".custom", [](const nlohmann::json& info) -> bool
+		{
+			std::string genProgram = info["command"]["gen_system"];
+			if(info["command"]["os_properties"][Utils::s_SystemName].contains("gen_system"))
+				genProgram = info["command"]["os_properties"][Utils::s_SystemName]["gen_system"];
+
+			std::string buildProgram = info["command"]["build_program"];
+			if(info["command"]["os_properties"][Utils::s_SystemName].contains("build_program"))
+				buildProgram = info["command"]["os_properties"][Utils::s_SystemName]["build_program"];
+			
+			std::string installProgram = info["command"]["install_program"];
+			if (info["command"]["os_properties"][Utils::s_SystemName].contains("install_program"))
+				installProgram = info["command"]["os_properties"][Utils::s_SystemName]["install_program"];
+
+			return ProcessDispatcher::SearchExecutableLocation(genProgram) && 
+				ProcessDispatcher::SearchExecutableLocation(buildProgram) && 
+				ProcessDispatcher::SearchExecutableLocation(installProgram);
+		}
 	}
 };
 
@@ -72,7 +89,9 @@ int main(int argc, char** argv)
 	Placeholders::SetPlaceholders(argv[2], argv[3], argv[4]);
 #endif // 
 
-	
+#ifdef WIN32
+	ProcessDispatcher::ApplyVSEnvironment();
+#endif
 
 	std::filesystem::path jsonInput = Utils::GetAbsoluteLocation(argv[1]);
 	if (!FileHandler::FileExists(jsonInput.string()))
@@ -82,15 +101,29 @@ int main(int argc, char** argv)
 	}
 	std::string vendor = jsonInput.filename().stem().extension().string();
 
+	std::string jsonRepo;
+	FileHandler::ReadTextFile(Utils::GetAbsoluteLocation(argv[1]), &jsonRepo);
+	std::ifstream f(jsonRepo);
+	nlohmann::json data;
+	try
+	{ 
+		data = nlohmann::json::parse(jsonRepo);
+	}
+	catch (nlohmann::json::parse_error& e)
+	{
+		std::cout << "Invalid json file: " << e.what() << "\n";
+		std::exit(65);
+	}
+
 	auto vendorTestIt = s_BuildVendorsLocated.find(vendor);
-	if (vendorTestIt == s_BuildVendorsLocated.end() || !vendorTestIt->second(vendor))
+	if (vendorTestIt == s_BuildVendorsLocated.end())
 	{
 		std::cout << "Vendor " << vendor << " not supported\n";
 		std::exit(65);
 	}
 
 	bool gitFound = ProcessDispatcher::SearchExecutableLocation("git");
-	bool vendorFound = vendorTestIt->second(vendor);
+	bool vendorFound = vendorTestIt->second(data);
 
 	if (!(gitFound && vendorFound))
 	{
@@ -105,10 +138,7 @@ int main(int argc, char** argv)
 		std::exit(65);
 	}
 
-	std::string jsonRepo;
-	FileHandler::ReadTextFile(Utils::GetAbsoluteLocation(argv[1]), &jsonRepo);
-	std::ifstream f(jsonRepo);
-	nlohmann::json data = nlohmann::json::parse(jsonRepo);
+	
 	
 	std::string currentPath = std::filesystem::current_path().string();
 	ProcessDispatcher::SetExecutableLocation(currentPath);

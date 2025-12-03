@@ -10,6 +10,7 @@ file(GLOB_RECURSE REPO_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.hpp")
 add_executable(RepoFetcher ${REPO_SRCS} ${REPO_HDRS})
 target_include_directories(RepoFetcher PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>/vendor/nlohmann_json/single_include)
 target_include_directories(RepoFetcher PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>/vendor/fmtlib/include)
+target_compile_definitions(RepoFetcher PRIVATE FMT_HEADER_ONLY)
 
 set_property(TARGET RepoFetcher PROPERTY CXX_STANDARD 20)
 

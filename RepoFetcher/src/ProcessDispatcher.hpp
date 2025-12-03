@@ -24,6 +24,7 @@ public:
 	static std::string ValidateVCEnvPath(const std::string& path);
 	static void InitVCEnv(const std::string& cmd);
 
+	static void ApplyVSEnvironment();
 #endif
 
 private:

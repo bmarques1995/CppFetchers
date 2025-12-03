@@ -1,4 +1,5 @@
 #include "ProcessDispatcher.hpp"
+#include "Placeholders.hpp"
 #include <iostream>
 #include <cstring>
 #include <sstream>
@@ -162,6 +163,20 @@ void ProcessDispatcher::InitVCEnv(const std::string& cmd)
     //delete[] path;
 
 }
+
+void ProcessDispatcher::ApplyVSEnvironment()
+{
+    std::string compilerPath = Placeholders::GetPlaceholder("compiler_path");
+    if (!compilerPath.empty())
+    {
+        std::string vsBasePath = ProcessDispatcher::ExtractVSBasePath(compilerPath);
+        std::string vcEnvPath = ProcessDispatcher::ValidateVCEnvPath(vsBasePath);
+        std::string ninjaPath = ProcessDispatcher::ValidateVSNinjaPath(vsBasePath);
+        ProcessDispatcher::InitVCEnv(vcEnvPath);
+        ProcessDispatcher::AppendDirectoryToPath(ninjaPath);
+    }
+}
+
 
 void ProcessDispatcher::ApplyEnvironment(const std::string& envText)
 {

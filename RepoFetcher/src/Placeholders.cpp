@@ -15,7 +15,7 @@ void Placeholders::SetPlaceholders(const std::string& buildMode, const std::stri
 		[](unsigned char c) { return std::toupper(c); });
 	s_Placeholders["upper_build_mode"] = upperBuildMode;
 	s_Placeholders["install_prefix"] = installPrefix;
-	s_Placeholders["module_path_name"] = modulePathname;
+	s_Placeholders["modules_root"] = modulePathname;
 }
 
 #ifdef WIN32
@@ -32,4 +32,12 @@ std::string Placeholders::GetPlaceholder(std::string key)
 	if (it == s_Placeholders.end())
 		return "";
 	return s_Placeholders[key];
+}
+
+void Placeholders::SetPlaceholder(std::string key, std::string value)
+{
+	if (s_Placeholders.find(key) == s_Placeholders.end())
+	{
+		s_Placeholders[key] = value;
+	}
 }

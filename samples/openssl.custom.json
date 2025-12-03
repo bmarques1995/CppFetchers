@@ -1,26 +1,43 @@
 {
   "git": {
-    "location": "https://github.com/google/flatbuffers.git",
-    "output_suffix": "flatbuffers",
+    "location": "https://github.com/openssl/openssl.git",
+    "output_suffix": "openssl",
     "branch": "",
-    "commit": "1c514626e83c20fffa8557e75641848e1e15cd5e",
-    "patch": "flatbuffers.patch"
+    "commit": "7b371d80d959ec9ab4139d09d78e83c090de9779",
+    "patch": ""
 
   },
   "command": {
     "gen_system": "perl",
     "build_program": "make",
-    "relative_root_location": "",
+    "install_program": "make",
+    "install_args": [ "install" ],
+    "run_on_repo_root": true,
+    "build_args": [],
     "os_properties": {
       "windows": {
-        "enable_vsenv": true,
-        "build_program": "nmake"
+        "build_program": "nmake",
+        "install_program": "nmake",
+        "gen_options": [
+          "./Configure",
+          "VC-WIN64A",
+          "--{lower_build_mode}",
+          "--prefix={install_prefix}",
+          "--openssldir={install_prefix}/openssl",
+          "-shared",
+          "zlib-dynamic",
+          "--with-zlib-lib={install_prefix}/lib",
+          "--with-zlib-include={install_prefix}/include",
+          "--with-brotli-include={install_prefix}/include",
+          "--with-brotli-lib={install_prefix}/lib",
+          "enable-zstd-dynamic",
+          "--with-zstd-lib={install_prefix}/lib",
+          "--with-zstd-include={install_prefix}/include"
+        ]
       }
     },
     "gen_options": [
-      "perl",
       "./Configure",
-      "VC-WIN64A",
       "--{lower_build_mode}",
       "--prefix={install_prefix}",
       "--openssldir={install_prefix}/openssl",

@@ -1,0 +1,31 @@
+{
+  "git": {
+    "location": "https://github.com/zlib-ng/zlib-ng.git",
+    "output_suffix": "zlibng",
+    "branch": "2.3.x",
+    "commit": "6d9f3dc072369dc719a5fbe71d4e086a96a680bd"
+  },
+  "cmake": {
+    "build_system": "default",
+    "relative_root_location": "",
+    "flags": [ "BUILD_SHARED_LIBS=ON", "ZLIB_COMPAT=ON" ],
+    "os_properties": {
+      "windows": {
+        "c_compiler": "cl",
+        "cxx_compiler": "cl"
+      },
+      "linux": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++"
+      },
+      "macos": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++"
+      },
+      "freebsd": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++"
+      }
+    }
+  }
+}

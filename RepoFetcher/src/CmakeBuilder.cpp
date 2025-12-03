@@ -9,11 +9,6 @@
 
 #ifdef WIN32
 #include <windows.h>
-std::string CmakeBuilder::s_SystemName = "windows";
-#elif defined(__linux__)
-std::string CmakeBuilder::s_SystemName = "linux";
-#elif defined(__FreeBSD__)
-std::string CmakeBuilder::s_SystemName = "freebsd";
 #endif
 
 void CmakeBuilder::GenCmakeSolution(const nlohmann::json& data)
@@ -39,20 +34,6 @@ void CmakeBuilder::BuildAndInstallCmakeSolution(const nlohmann::json& data)
 	);
 	ProcessDispatcher::ExecuteCommand("cmake", buildArgs, buildPath);
 }
-
-#ifdef WIN32
-
-void CmakeBuilder::TreatCmakeInfo(nlohmann::json* info, std::string buildMode, std::string installPrefix, std::string modulePathname, const std::string& compilerPath)
-{
-	std::string vsBasePath = ProcessDispatcher::ExtractVSBasePath(compilerPath);
-	std::string vcEnvPath = ProcessDispatcher::ValidateVCEnvPath(vsBasePath);
-	std::string ninjaPath = ProcessDispatcher::ValidateVSNinjaPath(vsBasePath);
-	ProcessDispatcher::InitVCEnv(vcEnvPath);
-	ProcessDispatcher::AppendDirectoryToPath(ninjaPath);
-	TreatCmakeInfo(info, buildMode, installPrefix, modulePathname);
-}
-
-#endif // WIN32
 
 void CmakeBuilder::TreatCmakeInfo(nlohmann::json* info, std::string buildMode, std::string installPrefix, std::string modulePathname)
 {
@@ -93,9 +74,9 @@ void CmakeBuilder::GetCmakeGenCommandArgList(const nlohmann::json& data, std::ve
 		flags = data["flags"].get<std::vector<std::string>>();
 	}
 	std::string osFieldPrefix = "os_properties";
-	if (data[osFieldPrefix][s_SystemName].contains("flags"))
+	if (data[osFieldPrefix][Utils::s_SystemName].contains("flags"))
 	{
-		std::vector<std::string> systemFlags = data[osFieldPrefix][s_SystemName]["flags"].get<std::vector<std::string>>();
+		std::vector<std::string> systemFlags = data[osFieldPrefix][Utils::s_SystemName]["flags"].get<std::vector<std::string>>();
 		flags.insert(flags.end(), systemFlags.begin(), systemFlags.end());
 	}
 	
@@ -115,7 +96,7 @@ void CmakeBuilder::GetCmakeGenCommandArgList(const nlohmann::json& data, std::ve
 	buildArgs->push_back(sourcePath);
 	pathBuilder.str("");
 	
-	pathBuilder << moduleDestination << "/dependencies/" << s_SystemName << "/" << modulePathName;
+	pathBuilder << moduleDestination << "/dependencies/" << Utils::s_SystemName << "/" << modulePathName;
 	std::string buildPath = pathBuilder.str();
 	pathBuilder.str("");
 	buildArgs->push_back("-B");
@@ -155,15 +136,15 @@ void CmakeBuilder::GetCmakeGenCommandArgList(const nlohmann::json& data, std::ve
 	
 	
 	AppendFlags(buildArgs, flags);
-	if (!data[osFieldPrefix][s_SystemName].is_null())
+	if (!data[osFieldPrefix][Utils::s_SystemName].is_null())
 	{
-		if(!data[osFieldPrefix][s_SystemName]["c_compiler"].is_null())
+		if(!data[osFieldPrefix][Utils::s_SystemName]["c_compiler"].is_null())
 		{
-			buildArgs->push_back("-DCMAKE_C_COMPILER=" + data[osFieldPrefix][s_SystemName]["c_compiler"].get<std::string>());
+			buildArgs->push_back("-DCMAKE_C_COMPILER=" + data[osFieldPrefix][Utils::s_SystemName]["c_compiler"].get<std::string>());
 		}
-		if (!data[osFieldPrefix][s_SystemName]["cxx_compiler"].is_null())
+		if (!data[osFieldPrefix][Utils::s_SystemName]["cxx_compiler"].is_null())
 		{
-			buildArgs->push_back("-DCMAKE_CXX_COMPILER=" + data[osFieldPrefix][s_SystemName]["cxx_compiler"].get<std::string>());
+			buildArgs->push_back("-DCMAKE_CXX_COMPILER=" + data[osFieldPrefix][Utils::s_SystemName]["cxx_compiler"].get<std::string>());
 		}
 	}
 }
@@ -180,7 +161,7 @@ std::string CmakeBuilder::GetCmakeBuildCommandArgList(const nlohmann::json& data
 	std::string modulePathName = data["module_path_name"].get<std::string>();
 	std::string moduleDestination = data["module_destination"].get<std::string>();
 	std::string generator = data["build_system"].get<std::string>();
-	pathBuilder << moduleDestination << "/dependencies/" << s_SystemName << "/" << modulePathName;
+	pathBuilder << moduleDestination << "/dependencies/" << Utils::s_SystemName << "/" << modulePathName;
 #ifdef WIN32
 	std::string buildRawPath = pathBuilder.str();
 	std::string buildPath = "\"" + buildRawPath + "\"";
