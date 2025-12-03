@@ -5,12 +5,13 @@
 
 void CustomBuilder::GenSolution(const nlohmann::json& data)
 {
+	bool usesOSProperties = data["command"]["os_properties"].contains(Utils::s_SystemName);
 	std::string genProgram = data["command"]["gen_system"];
-	if (data["command"]["os_properties"][Utils::s_SystemName].contains("gen_system"))
+	if (usesOSProperties && data["command"]["os_properties"][Utils::s_SystemName].contains("gen_system"))
 		genProgram = data["command"]["os_properties"][Utils::s_SystemName]["gen_system"];
 
 	std::vector<std::string> genArgs = data["command"]["gen_options"].get<std::vector<std::string>>();
-	if (data["command"]["os_properties"][Utils::s_SystemName].contains("gen_options"))
+	if (usesOSProperties && data["command"]["os_properties"][Utils::s_SystemName].contains("gen_options"))
 		genArgs = data["command"]["os_properties"][Utils::s_SystemName]["gen_options"].get<std::vector<std::string>>();
 
 	std::vector<std::string> finalGenArgs = std::vector<std::string>();
@@ -20,12 +21,13 @@ void CustomBuilder::GenSolution(const nlohmann::json& data)
 
 void CustomBuilder::BuildAndInstallSolution(const nlohmann::json& data)
 {
+	bool usesOSProperties = data["command"]["os_properties"].contains(Utils::s_SystemName);
 	std::string buildProgram = data["command"]["build_program"];
-	if (data["command"]["os_properties"][Utils::s_SystemName].contains("build_program"))
+	if (usesOSProperties && data["command"]["os_properties"][Utils::s_SystemName].contains("build_program"))
 		buildProgram = data["command"]["os_properties"][Utils::s_SystemName]["build_program"];
 
 	std::vector<std::string> genArgs = data["command"]["build_args"].get<std::vector<std::string>>();
-	if (data["command"]["os_properties"][Utils::s_SystemName].contains("build_args"))
+	if (usesOSProperties && data["command"]["os_properties"][Utils::s_SystemName].contains("build_args"))
 		genArgs = data["command"]["os_properties"][Utils::s_SystemName]["build_args"].get<std::vector<std::string>>();
 
 	std::vector<std::string> finalBuildArgs = std::vector<std::string>();
@@ -33,11 +35,11 @@ void CustomBuilder::BuildAndInstallSolution(const nlohmann::json& data)
 	ProcessDispatcher::ExecuteCommand(buildProgram, finalBuildArgs, Placeholders::GetPlaceholder("module_path"));
 
 	std::string installProgram = data["command"]["build_program"];
-	if (data["command"]["os_properties"][Utils::s_SystemName].contains("build_program"))
+	if (usesOSProperties && data["command"]["os_properties"][Utils::s_SystemName].contains("build_program"))
 		installProgram = data["command"]["os_properties"][Utils::s_SystemName]["build_program"];
 
 	std::vector<std::string> installArgs = data["command"]["install_args"].get<std::vector<std::string>>();
-	if (data["command"]["os_properties"][Utils::s_SystemName].contains("build_args"))
+	if (usesOSProperties && data["command"]["os_properties"][Utils::s_SystemName].contains("build_args"))
 		installArgs = data["command"]["os_properties"][Utils::s_SystemName]["build_args"].get<std::vector<std::string>>();
 
 	std::vector<std::string> finalInstallArgs = std::vector<std::string>();

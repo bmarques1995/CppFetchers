@@ -53,16 +53,17 @@ const std::unordered_map<std::string, std::function<bool(const nlohmann::json&)>
 	{
 		".custom", [](const nlohmann::json& info) -> bool
 		{
+			bool usesOSProperties = info["command"]["os_properties"].contains(Utils::s_SystemName);
 			std::string genProgram = info["command"]["gen_system"];
-			if(info["command"]["os_properties"][Utils::s_SystemName].contains("gen_system"))
+			if(usesOSProperties && info["command"]["os_properties"][Utils::s_SystemName].contains("gen_system"))
 				genProgram = info["command"]["os_properties"][Utils::s_SystemName]["gen_system"];
 
 			std::string buildProgram = info["command"]["build_program"];
-			if(info["command"]["os_properties"][Utils::s_SystemName].contains("build_program"))
+			if(usesOSProperties && info["command"]["os_properties"][Utils::s_SystemName].contains("build_program"))
 				buildProgram = info["command"]["os_properties"][Utils::s_SystemName]["build_program"];
 			
 			std::string installProgram = info["command"]["install_program"];
-			if (info["command"]["os_properties"][Utils::s_SystemName].contains("install_program"))
+			if (usesOSProperties && info["command"]["os_properties"][Utils::s_SystemName].contains("install_program"))
 				installProgram = info["command"]["os_properties"][Utils::s_SystemName]["install_program"];
 
 			return ProcessDispatcher::SearchExecutableLocation(genProgram) && 
