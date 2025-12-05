@@ -11,4 +11,6 @@ public:
 	static void BuildAndInstallSolution(const nlohmann::json& data);
 private:
 	static void ProcessGenCommandArgList(const std::vector<std::string>& inBuildArgs, std::vector<std::string>* outBuildArgs, std::string* executable);
+
+	static void ExecuteCommand(const nlohmann::json& data, std::string arg_list_field);
 };
