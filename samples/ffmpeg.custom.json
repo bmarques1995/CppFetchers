@@ -9,8 +9,8 @@
     },
     "command": {
         "test_programs": [ "bash", "make" ],
-        "build_args": [ "bash", "\"cd {source_destination} && make\"" ],
-        "install_args": [ "bash", "\"cd {source_destination} && make install\"" ],
+        "build_args": [ "bash", "\"cd {module_path} && make\"" ],
+        "install_args": [ "bash", "\"cd {module_path} && make install\"" ],
         "run_on_repo_root": true,
         "os_properties": {
             "windows": {
@@ -25,7 +25,7 @@
         },
         "gen_options": [
             "bash",
-            "\"cd {source_destination} && ./configure --prefix={install_prefix} --disable-everything --enable-demuxer=matroska --enable-demuxer=webm --enable-parser=av1 --enable-avcodec --enable-avformat --enable-avutil --enable-shared --disable-static --disable-programs [Debug:--enable-debug] [Debug:--disable-optimizations] [Debug:--disable-stripping] [Release:--enable-optimizations] [Release:--enable-stripping]\""
+            "\"cd {module_path} && CC=clang ./configure --prefix={install_prefix} --disable-everything --enable-demuxer=matroska --enable-demuxer=webm --enable-parser=av1 --enable-avcodec --enable-avformat --enable-avutil --enable-shared --disable-static --disable-programs [Debug:--enable-debug] [Debug:--disable-optimizations] [Debug:--disable-stripping] [Release:--enable-optimizations] [Release:--enable-stripping]\""
         ]
     }
 }

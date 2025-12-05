@@ -41,11 +41,13 @@ void CustomBuilder::ExecuteCommand(const nlohmann::json& data, std::string arg_l
 	std::string shell;
 	if (installProgram.compare("bash") == 0)
 	{
-		shell = Utils::SaveShellCommand(finalInstallArgs[1], "install");
+		
 #ifdef WIN32
+		shell = Utils::SaveShellCommand(finalInstallArgs[1], "install");
 		finalInstallArgs[1] = Utils::EscapeChars(Utils::WindowsPathToMsys(shell));
 #else
-		finalInstallArgs[1] = shell;
+		shell = Utils::SaveShellCommand(finalInstallArgs[0], "install");
+		finalInstallArgs[0] = shell;
 #endif
 	}
 	ProcessDispatcher::ExecuteCommand(installProgram, finalInstallArgs, Placeholders::GetPlaceholder("module_path"));

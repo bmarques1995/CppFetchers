@@ -70,6 +70,8 @@ std::string Utils::EscapeChars(const std::string& input)
 	return escaped;
 }
 
+#endif // 
+
 std::string Utils::SaveShellCommand(const std::string& command, const std::string& type)
 {
 	std::string shell = Placeholders::GetPlaceholder("module_path");
@@ -81,8 +83,6 @@ std::string Utils::SaveShellCommand(const std::string& command, const std::strin
 	FileHandler::WriteTextFile(shell, script);
 	return shell;
 }
-
-#endif // 
 
 std::string Utils::ProcessRawFlag(const std::string& flag)
 {
