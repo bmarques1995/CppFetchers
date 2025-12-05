@@ -5,6 +5,7 @@
 #include <sstream>
 #include <algorithm>
 #include <filesystem>
+#include "Utils.hpp"
 
 #ifdef WIN32
 #include <windows.h>
@@ -144,10 +145,10 @@ void ProcessDispatcher::InitVCEnv(const std::string& cmd)
     CloseHandle(w);
 
     std::string output;
-    char buffer[4096];
+    char* path = new char[65536];
     DWORD read;
-    while (ReadFile(r, buffer, sizeof(buffer), &read, NULL) && read > 0) {
-        output.append(buffer, read);
+    while (ReadFile(r, path, 65536, &read, NULL) && read > 0) {
+        output.append(path, read);
     }
 
     CloseHandle(r);
@@ -156,11 +157,15 @@ void ProcessDispatcher::InitVCEnv(const std::string& cmd)
     CloseHandle(pi.hThread);
 
     ApplyEnvironment(output);
+	delete[] path;
 
-    //char* path = new char[32768];
-    //GetEnvironmentVariableA("PATH", path, 32768);
-    //std::cout << path << std::endl;
-    //delete[] path;
+    path = new char[65536];
+    GetEnvironmentVariableA("PATH", path, 65536);
+    Placeholders::SetPlaceholder("path", path);
+    std::string msysPath = ConvertFullPathListToMsys(path);
+    std::string escapedPath = Utils::EscapeChars(msysPath);
+    Placeholders::SetPlaceholder("msys_escaped_path", escapedPath);
+    delete[] path;
 
 }
 
@@ -211,6 +216,25 @@ void ProcessDispatcher::ApplyEnvironment(const std::string& envText)
             SetEnvironmentVariableA(key.c_str(), value.c_str());
         }
     }
+}
+
+std::string ProcessDispatcher::ConvertFullPathListToMsys(const std::string& input)
+{
+    std::stringstream ss(input);
+    std::string item;
+    std::vector<std::string> converted;
+
+    while (std::getline(ss, item, ';')) {
+        converted.push_back(Utils::WindowsPathToMsys(item));
+    }
+
+    // Re-join using ':' (MSYS2 works with both; ':' is native)
+    std::string result;
+    for (size_t i = 0; i < converted.size(); ++i) {
+        if (i > 0) result += ":";
+        result += converted[i];
+    }
+    return result;
 }
 
 bool ProcessDispatcherSource::SearchExecutableLocationOnWindows(std::string_view programName)

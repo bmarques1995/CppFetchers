@@ -1,5 +1,6 @@
 #include "Placeholders.hpp"
 #include <algorithm> // Adicione este include para std::transform
+#include "Utils.hpp"
 
 std::unordered_map<std::string, std::string> Placeholders::s_Placeholders;
 
@@ -14,8 +15,12 @@ void Placeholders::SetPlaceholders(const std::string& buildMode, const std::stri
 	std::transform(upperBuildMode.begin(), upperBuildMode.end(), upperBuildMode.begin(),
 		[](unsigned char c) { return std::toupper(c); });
 	s_Placeholders["upper_build_mode"] = upperBuildMode;
-	s_Placeholders["install_prefix"] = installPrefix;
+	s_Placeholders["install_prefix"] = installPrefix; 
 	s_Placeholders["modules_root"] = modulePathname;
+#ifdef WIN32
+	s_Placeholders["msys_escaped_install_prefix"] = Utils::EscapeChars(Utils::WindowsPathToMsys(installPrefix));
+	s_Placeholders["msys_escaped_modules_root"] = Utils::EscapeChars(Utils::WindowsPathToMsys(modulePathname));
+#endif
 }
 
 #ifdef WIN32

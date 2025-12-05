@@ -32,6 +32,8 @@ private:
 #ifdef WIN32
 
 	static void ApplyEnvironment(const std::string& envText);
+    
+    static std::string ConvertFullPathListToMsys(const std::string& input);
 
 #endif
 	static std::string s_ExecutableLocation;

@@ -54,21 +54,21 @@ const std::unordered_map<std::string, std::function<bool(const nlohmann::json&)>
 		".custom", [](const nlohmann::json& info) -> bool
 		{
 			bool usesOSProperties = info["command"]["os_properties"].contains(Utils::s_SystemName);
-			std::string genProgram = info["command"]["gen_system"];
-			if(usesOSProperties && info["command"]["os_properties"][Utils::s_SystemName].contains("gen_system"))
-				genProgram = info["command"]["os_properties"][Utils::s_SystemName]["gen_system"];
-
-			std::string buildProgram = info["command"]["build_program"];
-			if(usesOSProperties && info["command"]["os_properties"][Utils::s_SystemName].contains("build_program"))
-				buildProgram = info["command"]["os_properties"][Utils::s_SystemName]["build_program"];
+			std::vector<std::string> testPrograms = info["command"]["test_programs"];
+			if(usesOSProperties && info["command"]["os_properties"][Utils::s_SystemName].contains("test_programs"))
+				testPrograms = info["command"]["os_properties"][Utils::s_SystemName]["test_programs"];
 			
-			std::string installProgram = info["command"]["install_program"];
-			if (usesOSProperties && info["command"]["os_properties"][Utils::s_SystemName].contains("install_program"))
-				installProgram = info["command"]["os_properties"][Utils::s_SystemName]["install_program"];
-
-			return ProcessDispatcher::SearchExecutableLocation(genProgram) && 
-				ProcessDispatcher::SearchExecutableLocation(buildProgram) && 
-				ProcessDispatcher::SearchExecutableLocation(installProgram);
+			bool programsFound = true;
+			for (std::string program : testPrograms)
+			{
+				programsFound = programsFound && ProcessDispatcher::SearchExecutableLocation(program);
+				if (!programsFound)
+				{
+					std::cerr << "Program " << program << " not found\n";
+					exit(65);
+				}
+			}
+			return programsFound;
 		}
 	}
 };
@@ -78,7 +78,7 @@ int main(int argc, char** argv)
 	//1, 3, 4 e 5
 	if (argc < 5)
 	{
-		std::cout << "Usage: " << argv[0] << " <json_file> <build_mode> <install_prefix> <module_destination> [<compiler_path>]\n";
+		std::cerr << "Usage: " << argv[0] << " <json_file> <build_mode> <install_prefix> <module_destination> [<compiler_path>]\n";
 	}
 
 #ifdef WIN32
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
 	std::filesystem::path jsonInput = Utils::GetAbsoluteLocation(argv[1]);
 	if (!FileHandler::FileExists(jsonInput.string()))
 	{
-		std::cout << "File " << argv[1] << " does not exist\n";
+		std::cerr << "File " << argv[1] << " does not exist\n";
 		std::exit(65);
 	}
 	std::string vendor = jsonInput.filename().stem().extension().string();
@@ -112,23 +112,23 @@ int main(int argc, char** argv)
 	}
 	catch (nlohmann::json::parse_error& e)
 	{
-		std::cout << "Invalid json file: " << e.what() << "\n";
+		std::cerr << "Invalid json file: " << e.what() << "\n";
 		std::exit(65);
 	}
 
 	auto vendorTestIt = s_BuildVendorsLocated.find(vendor);
 	if (vendorTestIt == s_BuildVendorsLocated.end())
 	{
-		std::cout << "Vendor " << vendor << " not supported\n";
+		std::cerr << "Vendor " << vendor << " not supported\n";
 		std::exit(65);
 	}
 
 	bool gitFound = ProcessDispatcher::SearchExecutableLocation("git");
-	bool vendorFound = vendorTestIt->second(data);
+	bool vendorsFound = vendorTestIt->second(data);
 
-	if (!(gitFound && vendorFound))
+	if (!(gitFound && vendorsFound))
 	{
-		std::cout << "git and vendor must be installed\n";
+		std::cerr << "git and vendor must be installed\n";
 		std::exit(65);
 	}
 

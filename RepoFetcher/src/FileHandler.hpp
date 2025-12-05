@@ -12,6 +12,8 @@ public:
 	static bool ReadBinFile(std::string_view path, std::byte** content, size_t* fileSize);
 	static bool WriteBinFile(std::string_view path, std::byte* content, size_t dataSize);
 
+	static bool DeleteFile(std::string_view path);
+
 	static bool FileExists(std::string_view path);
 };
 

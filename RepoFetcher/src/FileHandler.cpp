@@ -1,4 +1,5 @@
 #include "FileHandler.hpp"
+#include <filesystem>
 #include <fstream>
 
 bool FileHandler::ReadTextFile(std::string_view path, std::string* content)
@@ -85,6 +86,18 @@ bool FileHandler::WriteBinFile(std::string_view path, std::byte* content, size_t
 	}
 	fileStream.write(reinterpret_cast<char*>(content), dataSize);
 	return stored;
+}
+
+bool FileHandler::DeleteFile(std::string_view path)
+{
+	if(!FileExists(path))
+		return false;
+	try {
+		return std::filesystem::remove(path);
+	}
+	catch (const std::filesystem::filesystem_error& e) {
+		return false;
+	}
 }
 
 bool FileHandler::FileExists(std::string_view path)
