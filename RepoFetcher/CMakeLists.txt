@@ -20,7 +20,11 @@ add_executable(RepoFetcher ${REPO_EXEC_SRCS} ${REPO_EXEC_HDRS})
 target_include_directories(RepoFetcher PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/exec>)
 target_link_libraries(RepoFetcher PRIVATE RepoFetcherLib)
 
+set(REPO_FETCHER_EXEC ${CMAKE_CURRENT_BINARY_DIR}/RepoFetcher.exe PARENT_SCOPE)
+
 set_property(TARGET RepoFetcherLib PROPERTY CXX_STANDARD 20)
 set_property(TARGET RepoFetcher PROPERTY CXX_STANDARD 20)
+
+install(TARGETS RepoFetcher DESTINATION bin)
 
 # TODO: Adicione testes e instale destinos, se necessário.

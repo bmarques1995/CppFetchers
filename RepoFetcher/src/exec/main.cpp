@@ -79,6 +79,7 @@ int main(int argc, char** argv)
 	if (argc < 5)
 	{
 		std::cerr << "Usage: " << argv[0] << " <json_file> <build_mode> <install_prefix> <module_destination> [<compiler_path>]\n";
+		std::exit(65);
 	}
 
 #ifdef WIN32

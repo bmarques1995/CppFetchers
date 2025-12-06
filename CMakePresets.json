@@ -13,7 +13,8 @@
             },
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl.exe",
-                "CMAKE_CXX_COMPILER": "cl.exe"
+                "CMAKE_CXX_COMPILER": "cl.exe",
+                "CMAKE_CURRENT_PRESET": "${presetName}"
             },
             "condition": {
                 "type": "equals",
@@ -49,7 +50,8 @@
             },
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "clang",
-                "CMAKE_CXX_COMPILER": "clang++"
+                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_CURRENT_PRESET": "${presetName}"
             },
             "condition": {
                 "type": "equals",
