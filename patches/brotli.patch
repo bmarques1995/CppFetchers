@@ -1,0 +1,81 @@
+From 0448fe20d36c9b1a6cc45fd670a574c1a9d7f7e3 Mon Sep 17 00:00:00 2001
+From: bmarques1995 <testebash@outlook.com>
+Date: Thu, 4 Dec 2025 15:28:32 -0300
+Subject: [PATCH] patch
+
+---
+ CMakeLists.txt        | 31 ++++++++++++++++++++++++++++++-
+ cmake/config.cmake.in |  3 +++
+ 2 files changed, 33 insertions(+), 1 deletion(-)
+ create mode 100644 cmake/config.cmake.in
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 22b21d2..d6bd84a 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.15)
+ # This policy is set because we can't provide "VERSION" in "project" command.
+ # Use `cmake --help-policy CMP0048` for more information.
+ cmake_policy(SET CMP0048 NEW)
+-project(brotli C)
++project(brotli LANGUAGES C VERSION 1.2.0)
+ 
+ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+   message(STATUS "Setting build type to Release as none was specified")
+@@ -139,6 +139,10 @@ if (BROTLI_BUILD_FOR_PACKAGE)
+   add_library(brotlienc-static STATIC ${BROTLI_ENC_SOURCES})
+ endif()
+ 
++target_include_directories(brotlicommon PUBLIC $<INSTALL_INTERFACE:./include>)
++target_include_directories(brotlidec PUBLIC $<INSTALL_INTERFACE:./include>)
++target_include_directories(brotlienc PUBLIC $<INSTALL_INTERFACE:./include>)
++
+ # Older CMake versions does not understand INCLUDE_DIRECTORIES property.
+ include_directories(${BROTLI_INCLUDE_DIRS})
+ 
+@@ -191,8 +195,33 @@ if (NOT BROTLI_BUNDLED_MODE)
+     )
+   endif()
+ 
++  set(BROTLI_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
++  set(BROTLI_VERSION_CONFIG "${BROTLI_GENERATED_DIR}/${PROJECT_NAME}ConfigVersion.cmake")
++  set(BROTLI_PROJECT_CONFIG "${BROTLI_GENERATED_DIR}/${PROJECT_NAME}Config.cmake")
++  set(BROTLI_TARGETS_EXPORT_NAME "${PROJECT_NAME}Targets")
++  set(BROTLI_CONFIG_INSTALL_DIR "lib/cmake/${PROJECT_NAME}")
++  set(BROTLI_NAMESPACE "brotli::")
++  set(BROTLI_VERSION ${PROJECT_VERSION})
++
++  include(CMakePackageConfigHelpers)
++  write_basic_package_version_file(
++    "${BROTLI_VERSION_CONFIG}" VERSION ${BROTLI_VERSION} COMPATIBILITY SameMajorVersion
++  )
++  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.cmake.in" "${BROTLI_PROJECT_CONFIG}" @ONLY)
++
++  # Install cmake config files
++  install(
++    FILES "${BROTLI_PROJECT_CONFIG}" "${BROTLI_VERSION_CONFIG}"
++    DESTINATION "${BROTLI_CONFIG_INSTALL_DIR}")
++
++  install(
++    EXPORT "${BROTLI_TARGETS_EXPORT_NAME}"
++    NAMESPACE "${BROTLI_NAMESPACE}"
++    DESTINATION "${BROTLI_CONFIG_INSTALL_DIR}")
++
+   install(
+     TARGETS ${BROTLI_SHARED_LIBRARIES} ${BROTLI_STATIC_LIBRARIES}
++    EXPORT ${BROTLI_TARGETS_EXPORT_NAME} 
+     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+diff --git a/cmake/config.cmake.in b/cmake/config.cmake.in
+new file mode 100644
+index 0000000..2a4d01a
+--- /dev/null
++++ b/cmake/config.cmake.in
+@@ -0,0 +1,3 @@
++include(CMakeFindDependencyMacro)
++
++include("${CMAKE_CURRENT_LIST_DIR}/@BROTLI_TARGETS_EXPORT_NAME@.cmake")
+-- 
+2.52.0.windows.1
+

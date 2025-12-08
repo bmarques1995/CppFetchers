@@ -8,7 +8,7 @@
   "cmake": {
     "build_system": "default",
     "relative_root_location": "",
-    "flags": [ "BUILD_SHARED_LIBS=ON", "ZLIB_COMPAT=ON" ],
+    "flags": [ "BUILD_SHARED_LIBS=OFF", "ZLIB_COMPAT=ON" ],
     "os_properties": {
       "windows": {
         "c_compiler": "cl",

@@ -1,16 +1,14 @@
 {
-  "git": {
-    "location": "https://github.com/facebook/zstd.git",
-    "output_suffix": "zstd",
-    "branch": "release",
-    "commit": "f8745da6ff1ad1e7bab384bd1f9d742439278e99",
-    "patch": ""
-
-  },
+    "git": {
+        "location": "https://github.com/curl/curl.git",
+        "output_suffix": "curl",
+        "branch": "",
+        "commit": "400fffa90f30c7a2dc762fa33009d24851bd2016"
+    },
   "cmake": {
     "build_system": "default",
-    "relative_root_location": "build/cmake",
-    "flags": [ "BUILD_SHARED_LIBS=OFF" ],
+    "relative_root_location": "",
+    "flags": [ "BUILD_CURL_EXE=OFF", "BUILD_STATIC_LIBS=ON", "BUILD_SHARED_LIBS=OFF", "CURL_USE_LIBPSL=OFF", "USE_LIBIDN2=OFF" ],
     "os_properties": {
       "windows": {
         "c_compiler": "cl",
