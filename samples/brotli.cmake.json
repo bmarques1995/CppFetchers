@@ -11,7 +11,7 @@
     "cmake": {
         "build_system": "default",
         "relative_root_location": "",
-        "flags": [ "-DBUILD_SHARED_LIBS=OFF" ],
+        "flags": [ "-DBUILD_SHARED_LIBS=ON" ],
         "os_properties": {
             "windows": {
                 "c_compiler": "cl",

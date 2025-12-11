@@ -136,13 +136,13 @@ void CmakeBuilder::GetCmakeGenCommandArgList(const nlohmann::json& data, std::ve
 	
 	
 	AppendFlags(buildArgs, flags);
-	if (!data[osFieldPrefix][Utils::s_SystemName].is_null())
+	if (data[osFieldPrefix].contains(Utils::s_SystemName))
 	{
-		if(!data[osFieldPrefix][Utils::s_SystemName]["c_compiler"].is_null())
+		if(data[osFieldPrefix][Utils::s_SystemName].contains("c_compiler"))
 		{
 			buildArgs->push_back("-DCMAKE_C_COMPILER=" + data[osFieldPrefix][Utils::s_SystemName]["c_compiler"].get<std::string>());
 		}
-		if (!data[osFieldPrefix][Utils::s_SystemName]["cxx_compiler"].is_null())
+		if (data[osFieldPrefix][Utils::s_SystemName].contains("cxx_compiler"))
 		{
 			buildArgs->push_back("-DCMAKE_CXX_COMPILER=" + data[osFieldPrefix][Utils::s_SystemName]["cxx_compiler"].get<std::string>());
 		}

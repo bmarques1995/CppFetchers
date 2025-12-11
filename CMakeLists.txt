@@ -15,10 +15,3 @@ project("CppFetchers")
 
 # Inclua subprojetos.
 add_subdirectory("RepoFetcher")
-if(NOT FETCHER_BOOTSTRAP)
-	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake_helpers")
-	include(dep_tracer)
-	include(target_destination)
-	include(source_downloader)
-	add_subdirectory("FileFetcher")
-endif()

@@ -21,17 +21,17 @@ std::string ProcessDispatcher::s_ExecutableLocation = "";
 namespace ProcessDispatcherSource
 {
 #ifdef WIN32
-	bool SearchExecutableLocationOnWindows(std::string_view programName);
+	std::string SearchExecutableLocationOnWindows(std::string_view programName);
 	bool ExecuteCommandOnWindows(std::string_view command, const std::vector<std::string>& arguments, const std::string& workingDirectory);
     void AppendDirectoryToPathOnWindows(std::string_view directory);
 #elif defined(__linux__) || defined(__FreeBSD__)
-    bool SearchExecutableLocationOnUnix(std::string_view programName);
+    std::string SearchExecutableLocationOnUnix(std::string_view programName);
     bool ExecuteCommandOnUnix(std::string_view command, const std::vector<std::string>& arguments, const std::string& workingDirectory);
     void AppendDirectoryToPathOnUnix(std::string_view directory);
 #endif // WIN32
 }
 
-bool ProcessDispatcher::SearchExecutableLocation(std::string_view programName)
+std::string ProcessDispatcher::SearchExecutableLocation(std::string_view programName)
 {
 #ifdef WIN32
 	return ProcessDispatcherSource::SearchExecutableLocationOnWindows(programName);
@@ -58,6 +58,13 @@ void ProcessDispatcher::AppendDirectoryToPath(std::string_view directory)
 #endif
 }
 
+void ProcessDispatcher::FilterPath()
+{
+#ifdef WIN32
+    FilterPathOnWindows();
+#endif
+}
+
 void ProcessDispatcher::SetExecutableLocation(std::string_view location)
 {
     s_ExecutableLocation = location;
@@ -69,6 +76,29 @@ const std::string& ProcessDispatcher::GetExecutableLocation()
 }
 
 #ifdef WIN32
+
+void ProcessDispatcher::FilterPathOnWindows()
+{
+    char* path = new char[32768];
+    GetEnvironmentVariableA("PATH", path, 32768);
+    std::stringstream pathOutStream;
+    std::stringstream pathInStream(path);
+    delete[] path;
+    std::string element;
+    while (std::getline(pathInStream, element, ';')) {
+        std::string lower = element;
+        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+
+        if (!lower.ends_with("\\microsoft\\windowsapps") &&
+            !lower.ends_with("\\microsoft\\windowsapps\\"))
+        {
+            pathOutStream << element << ";";
+        }
+    }
+    std::string treatedPath = pathOutStream.str();
+    std::replace(treatedPath.begin(), treatedPath.end(), '/', '\\');
+    SetEnvironmentVariableA("PATH", treatedPath.c_str());
+}
 
 std::string ProcessDispatcher::ExtractVSBasePath(const std::string& path)
 {
@@ -117,49 +147,17 @@ std::string ProcessDispatcher::ValidateVCEnvPath(const std::string& path)
 
 void ProcessDispatcher::InitVCEnv(const std::string& cmd)
 {
-    HANDLE r, w;
+    
     //cmd.exe / c \"vcvars64.bat >nul && set\"
     std::string treatedCmd = cmd;
     treatedCmd = std::regex_replace(treatedCmd, std::regex(" "), "^ ");
     std::string command = "cmd.exe /c \"" + treatedCmd + " > nul && set\"";
-    SECURITY_ATTRIBUTES sa = { sizeof(SECURITY_ATTRIBUTES), NULL, TRUE };
-    CreatePipe(&r, &w, &sa, 0);
-    SetHandleInformation(r, HANDLE_FLAG_INHERIT, 0);
-
-    PROCESS_INFORMATION pi{};
-    STARTUPINFOA si{};
-    si.cb = sizeof(si);
-    si.hStdOutput = w;
-    si.hStdError = w;
-    si.dwFlags |= STARTF_USESTDHANDLES;
-
-    CreateProcessA(
-        NULL,
-        (LPSTR)command.c_str(),
-        NULL, NULL, TRUE,
-        CREATE_NO_WINDOW,
-        NULL, NULL,
-        &si, &pi
-    );
-
-    CloseHandle(w);
-
     std::string output;
-    char* path = new char[65536];
-    DWORD read;
-    while (ReadFile(r, path, 65536, &read, NULL) && read > 0) {
-        output.append(path, read);
-    }
 
-    CloseHandle(r);
-    WaitForSingleObject(pi.hProcess, INFINITE);
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
-
+	ExecuteOutputCommand(command, &output);
     ApplyEnvironment(output);
-	delete[] path;
 
-    path = new char[65536];
+    char* path = new char[65536];
     GetEnvironmentVariableA("PATH", path, 65536);
     Placeholders::SetPlaceholder("path", path);
     std::string msysPath = ConvertFullPathListToMsys(path);
@@ -182,21 +180,68 @@ void ProcessDispatcher::ApplyVSEnvironment()
     }
 }
 
+void ProcessDispatcher::ExecuteOutputCommand(std::string_view command, std::string* output)
+{
+    HANDLE r, w;
+    SECURITY_ATTRIBUTES sa = { sizeof(SECURITY_ATTRIBUTES), NULL, TRUE };
+    CreatePipe(&r, &w, &sa, 0);
+    SetHandleInformation(r, HANDLE_FLAG_INHERIT, 0);
+
+    PROCESS_INFORMATION pi{};
+    STARTUPINFOA si{};
+    si.cb = sizeof(si);
+    si.hStdOutput = w;
+    si.hStdError = w;
+    si.dwFlags |= STARTF_USESTDHANDLES;
+
+    CreateProcessA(
+        NULL,
+        (LPSTR)command.data(),
+        NULL, NULL, TRUE,
+        CREATE_NO_WINDOW,
+        NULL, NULL,
+        &si, &pi
+    );
+
+    CloseHandle(w);
+    char* path = new char[65536];
+    DWORD read;
+    while (ReadFile(r, path, 65536, &read, NULL) && read > 0) {
+        (*output).append(path, read);
+    }
+
+    CloseHandle(r);
+    WaitForSingleObject(pi.hProcess, INFINITE);
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+    delete[] path;
+}
+
 
 void ProcessDispatcher::ApplyEnvironment(const std::string& envText)
 {
+    std::unordered_map<std::string, std::string> varMap;
+    ExtractKeys(&varMap, envText);
+	for (const auto& var : varMap)
+	{
+		SetEnvironmentVariableA(var.first.c_str(), var.second.c_str());
+	}
+}
+
+void ProcessDispatcher::ExtractKeys(std::unordered_map<std::string, std::string>* map, const std::string& text)
+{
     size_t pos = 0;
-    size_t len = envText.size();
+    size_t len = text.size();
 
     while (pos < len)
     {
         // Find end of line
-        size_t end = envText.find('\n', pos);
+        size_t end = text.find('\n', pos);
         if (end == std::string::npos)
             end = len;
 
         // Extract line (trim CR if present)
-        std::string line = envText.substr(pos, end - pos);
+        std::string line = text.substr(pos, end - pos);
         if (!line.empty() && line.back() == '\r')
             line.pop_back();
 
@@ -212,11 +257,14 @@ void ProcessDispatcher::ApplyEnvironment(const std::string& envText)
 
         if (!key.empty())
         {
+			(*map)[key] = value;
             // Apply to this process' environment
-            SetEnvironmentVariableA(key.c_str(), value.c_str());
+            //SetEnvironmentVariableA(key.c_str(), value.c_str());
         }
     }
 }
+
+
 
 std::string ProcessDispatcher::ConvertFullPathListToMsys(const std::string& input)
 {
@@ -237,17 +285,18 @@ std::string ProcessDispatcher::ConvertFullPathListToMsys(const std::string& inpu
     return result;
 }
 
-bool ProcessDispatcherSource::SearchExecutableLocationOnWindows(std::string_view programName)
+std::string ProcessDispatcherSource::SearchExecutableLocationOnWindows(std::string_view programName)
 {
+    std::string programFullPath = "";
     std::string programFullName = programName.data();
     programFullName = programFullName + ".exe";
 	char buffer[MAX_PATH];
 	bool found = false;
 	if (SearchPathA(nullptr, programFullName.c_str(), nullptr, MAX_PATH, buffer, nullptr)) {
-		found = true;
+		programFullPath = buffer;
 	}
 
-	return found;
+	return programFullPath;
 }
 
 bool ProcessDispatcherSource::ExecuteCommandOnWindows(std::string_view command, const std::vector<std::string>& arguments, const std::string& workingDirectory)
@@ -312,16 +361,21 @@ void ProcessDispatcherSource::AppendDirectoryToPathOnWindows(std::string_view di
 }
 
 #elif defined(__linux__) || defined(__FreeBSD__)
-bool ProcessDispatcherSource::SearchExecutableLocationOnUnix(std::string_view programName)
+std::string ProcessDispatcherSource::SearchExecutableLocationOnUnix(std::string_view programName)
 {
+    std::string programFullPath = "";
     // If it contains a slash, it must be an actual file path
     if (strchr(programName.data(), '/')) {
-        return access(programName.data(), X_OK) == 0;
+        if (access(full.c_str(), X_OK) == 0)
+        {
+            programFullPath = programName;
+            return programFullPath;
+        }
     }
 
     // Otherwise search PATH manually
     const char* path = getenv("PATH");
-    if (!path) return false;
+    if (!path) return "";
 
     std::string p(path);
     std::stringstream ss(p);
@@ -330,10 +384,12 @@ bool ProcessDispatcherSource::SearchExecutableLocationOnUnix(std::string_view pr
     while (std::getline(ss, dir, ':')) {
         std::string full = dir + "/" + programName.data();
         if (access(full.c_str(), X_OK) == 0)
-            return true;
+        {
+            programFullPath = full;
+        }
     }
 
-    return false;
+    return programFullPath;
 }
 
 bool ProcessDispatcherSource::ExecuteCommandOnUnix(std::string_view command, const std::vector<std::string>& arguments, const std::string& workingDirectory)

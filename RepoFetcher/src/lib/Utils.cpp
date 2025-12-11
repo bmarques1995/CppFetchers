@@ -17,7 +17,6 @@ const std::string Utils::s_SystemName = "freebsd";
 std::string Utils::GetAbsoluteLocation(const std::string& path)
 {
 	std::filesystem::path absolutePath = std::filesystem::absolute(path);
-	std::cout << absolutePath.string() << "\n";
 	return absolutePath.string();
 }
 

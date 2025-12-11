@@ -53,6 +53,6 @@ void CustomBuilder::ExecuteCommand(const nlohmann::json& data, std::string arg_l
 	ProcessDispatcher::ExecuteCommand(installProgram, finalInstallArgs, Placeholders::GetPlaceholder("module_path"));
 	if (installProgram.compare("bash") == 0)
 	{
-		FileHandler::DeleteFile(shell);
+		FileHandler::DeleteFileAt(shell);
 	}
 }

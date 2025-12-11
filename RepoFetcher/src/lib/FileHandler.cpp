@@ -88,7 +88,7 @@ bool FileHandler::WriteBinFile(std::string_view path, std::byte* content, size_t
 	return stored;
 }
 
-bool FileHandler::DeleteFile(std::string_view path)
+bool FileHandler::DeleteFileAt(std::string_view path)
 {
 	if(!FileExists(path))
 		return false;

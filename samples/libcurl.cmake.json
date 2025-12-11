@@ -8,7 +8,7 @@
   "cmake": {
     "build_system": "default",
     "relative_root_location": "",
-    "flags": [ "BUILD_CURL_EXE=OFF", "BUILD_STATIC_LIBS=ON", "BUILD_SHARED_LIBS=OFF", "CURL_USE_LIBPSL=OFF", "USE_LIBIDN2=OFF" ],
+    "flags": [ "BUILD_CURL_EXE=OFF", "BUILD_STATIC_LIBS=OFF", "BUILD_SHARED_LIBS=ON", "CURL_USE_LIBPSL=OFF", "USE_LIBIDN2=OFF" ],
     "os_properties": {
       "windows": {
         "c_compiler": "cl",

@@ -1,28 +1,31 @@
 {
     "git": {
-        "location": "https://github.com/nghttp2/nghttp2.git",
-        "output_suffix": "nghttp2",
+        "location": "https://git.postgresql.org/git/postgresql.git",
+        "output_suffix": "postgresql",
         "branch": "",
-        "commit": "534b74b72524e962c18c7146470914632ca7eb2d"
+        "commit": "4b324845ba5d24682b9b3708a769f00d160afbd7"
     },
-    "cmake": {
+    "meson": {
         "build_system": "default",
-        "relative_root_location": "",
-        "flags": [ "ENABLE_LIB_ONLY=ON", "BUILD_STATIC_LIBS=OFF", "BUILD_SHARED_LIBS=ON" ],
+        
         "os_properties": {
             "windows": {
+                "modify_pkg_paths": false,
                 "c_compiler": "cl",
                 "cxx_compiler": "cl"
             },
             "linux": {
+                "modify_pkg_paths": true,
                 "c_compiler": "clang",
                 "cxx_compiler": "clang++"
             },
             "macos": {
+                "modify_pkg_paths": true,
                 "c_compiler": "clang",
                 "cxx_compiler": "clang++"
             },
             "freebsd": {
+                "modify_pkg_paths": true,
                 "c_compiler": "clang",
                 "cxx_compiler": "clang++"
             }

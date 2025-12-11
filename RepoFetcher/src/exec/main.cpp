@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <functional>
 #include "Placeholders.hpp"
+#include "MesonBuilder.hpp"
 #include "Utils.hpp"
 #include <fmt/core.h>
 
@@ -32,6 +33,13 @@ const std::unordered_map<std::string, std::function<void(nlohmann::json*)>> s_Bu
 		}
 	},
 	{
+		".meson", [](nlohmann::json* info)
+		{
+			MesonBuilder::GenSolution(*info);
+			MesonBuilder::BuildAndInstallSolution(*info);
+		}
+	},
+	{
 		".custom", [](nlohmann::json* info)
 		{
 			CustomBuilder::GenSolution(*info);
@@ -47,7 +55,18 @@ const std::unordered_map<std::string, std::function<bool(const nlohmann::json&)>
 		".cmake", [](const nlohmann::json&) -> bool
 		{
 			std::string program = "cmake";
-			return ProcessDispatcher::SearchExecutableLocation(program);
+			return (ProcessDispatcher::SearchExecutableLocation(program).compare("") != 0);
+		}
+	},
+	{
+		".meson", [](const nlohmann::json& info) -> bool
+		{
+			MesonBuilder::FindPython();
+			MesonBuilder::EnableVenv();
+			MesonBuilder::ApplyVenv();
+			ProcessDispatcher::AppendDirectoryToPath(Placeholders::GetPlaceholder("install_prefix"));
+			MesonBuilder::InstallMeson();
+			return true;
 		}
 	},
 	{
@@ -61,7 +80,7 @@ const std::unordered_map<std::string, std::function<bool(const nlohmann::json&)>
 			bool programsFound = true;
 			for (std::string program : testPrograms)
 			{
-				programsFound = programsFound && ProcessDispatcher::SearchExecutableLocation(program);
+				programsFound = programsFound && (ProcessDispatcher::SearchExecutableLocation(program).compare("") != 0);
 				if (!programsFound)
 				{
 					std::cerr << "Program " << program << " not found\n";
@@ -95,6 +114,8 @@ int main(int argc, char** argv)
 	ProcessDispatcher::ApplyVSEnvironment();
 #endif
 
+	ProcessDispatcher::FilterPath();
+
 	std::filesystem::path jsonInput = Utils::GetAbsoluteLocation(argv[1]);
 	if (!FileHandler::FileExists(jsonInput.string()))
 	{
@@ -124,7 +145,7 @@ int main(int argc, char** argv)
 		std::exit(65);
 	}
 
-	bool gitFound = ProcessDispatcher::SearchExecutableLocation("git");
+	bool gitFound = (ProcessDispatcher::SearchExecutableLocation("git").compare("") != 0);
 	bool vendorsFound = vendorTestIt->second(data);
 
 	if (!(gitFound && vendorsFound))
