@@ -2,7 +2,10 @@
 
 #include <string>
 #include <vector>
+#ifdef WIN32
 #include <unordered_map>
+#else
+#endif
 
 //C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.50.35717/bin/Hostx64/x64/cl.exe
 //C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja
@@ -14,6 +17,7 @@ public:
 	static bool ExecuteCommand(std::string_view command, const std::vector<std::string>& arguments, const std::string& workingDirectory = "./");
 
 	static void AppendDirectoryToPath(std::string_view directory);
+	static void AppendVariable(std::string_view key, std::string_view value);
 
 	static void FilterPath();
 
@@ -36,13 +40,10 @@ public:
 private:
 
 #ifdef WIN32
-
 	static void ApplyEnvironment(const std::string& envText);
-
-	
-    
     static std::string ConvertFullPathListToMsys(const std::string& input);
-
+#else
+	
 #endif
 	static std::string s_ExecutableLocation;
 }; 

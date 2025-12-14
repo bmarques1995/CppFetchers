@@ -1,6 +1,8 @@
 #include "Placeholders.hpp"
 #include <algorithm> // Adicione este include para std::transform
+#ifdef WIN32
 #include "Utils.hpp"
+#endif
 
 std::unordered_map<std::string, std::string> Placeholders::s_Placeholders;
 

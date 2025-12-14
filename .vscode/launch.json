@@ -7,7 +7,7 @@
             "program": "${workspaceFolder}/out/build/linux-debug/RepoFetcher/RepoFetcher",
             "cwd": "${workspaceFolder}",
             "args": [
-                "/mnt/d/cpp/CppFetchers/samples/ffmpeg.custom.json",
+                "/mnt/d/cpp/CppFetchers/samples/libpq.meson.json",
                 "Debug",
                 "/mnt/d/cpp/CppFetchers/Linux/Debug",
                 "/mnt/d/cpp/CppFetchers"

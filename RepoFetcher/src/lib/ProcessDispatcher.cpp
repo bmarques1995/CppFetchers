@@ -1,16 +1,18 @@
 #include "ProcessDispatcher.hpp"
-#include "Placeholders.hpp"
+
 #include <iostream>
 #include <cstring>
 #include <sstream>
-#include <algorithm>
 #include <filesystem>
-#include "Utils.hpp"
 
 #ifdef WIN32
+#include "Placeholders.hpp"
+#include "Utils.hpp"
+#include <algorithm>
 #include <windows.h>
 #include <regex>
-#elif defined(__linux__) || defined(__FreeBSD__)
+#else
+#include <exception>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -24,10 +26,13 @@ namespace ProcessDispatcherSource
 	std::string SearchExecutableLocationOnWindows(std::string_view programName);
 	bool ExecuteCommandOnWindows(std::string_view command, const std::vector<std::string>& arguments, const std::string& workingDirectory);
     void AppendDirectoryToPathOnWindows(std::string_view directory);
-#elif defined(__linux__) || defined(__FreeBSD__)
+    void AppendVariableOnWindows(std::string_view key, std::string_view value);
+#else
     std::string SearchExecutableLocationOnUnix(std::string_view programName);
     bool ExecuteCommandOnUnix(std::string_view command, const std::vector<std::string>& arguments, const std::string& workingDirectory);
     void AppendDirectoryToPathOnUnix(std::string_view directory);
+    static void SanitizeUnixPath(const std::string& inputPath, std::string* outputPath);
+    void AppendVariableOnUnix(std::string_view key, std::string_view value);
 #endif // WIN32
 }
 
@@ -35,7 +40,7 @@ std::string ProcessDispatcher::SearchExecutableLocation(std::string_view program
 {
 #ifdef WIN32
 	return ProcessDispatcherSource::SearchExecutableLocationOnWindows(programName);
-#elif defined(__linux__) || defined(__FreeBSD__)
+#else
     return ProcessDispatcherSource::SearchExecutableLocationOnUnix(programName);
 #endif
 }
@@ -44,7 +49,7 @@ bool ProcessDispatcher::ExecuteCommand(std::string_view command, const std::vect
 {
 #ifdef WIN32
 	return ProcessDispatcherSource::ExecuteCommandOnWindows(command, arguments, workingDirectory);
-#elif defined(__linux__) || defined(__FreeBSD__)
+#else
     return ProcessDispatcherSource::ExecuteCommandOnUnix(command, arguments, workingDirectory);
 #endif
 }
@@ -53,8 +58,17 @@ void ProcessDispatcher::AppendDirectoryToPath(std::string_view directory)
 {
 #ifdef WIN32
     return ProcessDispatcherSource::AppendDirectoryToPathOnWindows(directory);
-#elif defined(__linux__) || defined(__FreeBSD__)
+#else
     return ProcessDispatcherSource::AppendDirectoryToPathOnUnix(directory);
+#endif
+}
+
+void ProcessDispatcher::AppendVariable(std::string_view key, std::string_view value)
+{
+#ifdef WIN32
+    return ProcessDispatcherSource::AppendVariableOnWindows(key, value);
+#else
+    return ProcessDispatcherSource::AppendVariableOnUnix(key, value);
 #endif
 }
 
@@ -349,24 +363,28 @@ bool ProcessDispatcherSource::ExecuteCommandOnWindows(std::string_view command, 
 
 void ProcessDispatcherSource::AppendDirectoryToPathOnWindows(std::string_view directory)
 {
-    char* path = new char[32768];
-    GetEnvironmentVariableA("PATH", path, 32768);
-	std::stringstream pathStream;
-	std::string pathPart;
-    pathStream << directory << ";" << path;
-    std::string treatedPath = pathStream.str();
-    delete[] path;
-	std::replace(treatedPath.begin(), treatedPath.end(), '/', '\\');
-	SetEnvironmentVariableA("PATH", treatedPath.c_str());
+    AppendVariableOnWindows("PATH", directory);
 }
 
-#elif defined(__linux__) || defined(__FreeBSD__)
+void ProcessDispatcherSource::AppendVariableOnWindows(std::string_view key, std::string_view value)
+{
+    char* currentValue = new char[32768];
+    GetEnvironmentVariableA(key.data(), currentValue, 32768);
+    std::stringstream valueStream;
+    valueStream << value << ";" << currentValue;
+    std::string treatedValue = valueStream.str();
+    delete[] currentValue;
+    std::replace(treatedValue.begin(), treatedValue.end(), '/', '\\');
+    SetEnvironmentVariableA(key.data(), treatedValue.c_str());
+}
+
+#else
 std::string ProcessDispatcherSource::SearchExecutableLocationOnUnix(std::string_view programName)
 {
     std::string programFullPath = "";
     // If it contains a slash, it must be an actual file path
     if (strchr(programName.data(), '/')) {
-        if (access(full.c_str(), X_OK) == 0)
+        if (access(programName.data(), X_OK) == 0)
         {
             programFullPath = programName;
             return programFullPath;
@@ -376,9 +394,10 @@ std::string ProcessDispatcherSource::SearchExecutableLocationOnUnix(std::string_
     // Otherwise search PATH manually
     const char* path = getenv("PATH");
     if (!path) return "";
+    std::string sanitizedPath;
+    SanitizeUnixPath(path, &sanitizedPath);
 
-    std::string p(path);
-    std::stringstream ss(p);
+    std::stringstream ss(sanitizedPath);
     std::string dir;
 
     while (std::getline(ss, dir, ':')) {
@@ -422,18 +441,39 @@ bool ProcessDispatcherSource::ExecuteCommandOnUnix(std::string_view command, con
     int status = 0;
     waitpid(pid, &status, 0);
 
-    std::cout << "Program executed" << "\n";
     return true;
 }
 
 void ProcessDispatcherSource::AppendDirectoryToPathOnUnix(std::string_view directory)
 {
-	std::string path = getenv("PATH");
-	std::stringstream pathStream(path);
-	std::string pathPart;
-	pathStream << ":" << directory.data();
-	std::string treatedPath = pathStream.str();
-	setenv("PATH", treatedPath.c_str(), 1);
+    AppendVariableOnUnix("PATH", directory);
+}
+
+void ProcessDispatcherSource::SanitizeUnixPath(const std::string& inputPath, std::string* outputPath)
+{
+    std::string p(inputPath);
+    std::stringstream ss(p);
+    std::stringstream output;
+    std::string dir;
+    while (std::getline(ss, dir, ':')) {
+        if(dir.rfind("/mnt/", 0) != 0)
+        {
+            output << dir << ":";
+        }
+    }
+    *outputPath = output.str();
+    outputPath->pop_back();
+}
+
+void ProcessDispatcherSource::AppendVariableOnUnix(std::string_view key, std::string_view value)
+{
+    const char* rawVariable = getenv(key.data());
+    std::string variable = rawVariable == nullptr ? "" : rawVariable;
+    std::stringstream varStream;
+    std::string pathPart;
+    varStream << value << ":" << variable;
+    std::string treatedValue = varStream.str();
+    setenv(key.data(), treatedValue.c_str(), 1);
 }
 
 #endif

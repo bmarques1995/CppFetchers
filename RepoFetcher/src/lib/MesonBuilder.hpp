@@ -31,8 +31,7 @@ private:
 	static std::string s_PythonName;
 
 	static void AppendIniBinaries(const nlohmann::json& data, std::unordered_map<std::string, std::string>* binariesList);
-	static void AppendIniPkgPaths(const nlohmann::json& data, std::unordered_map<std::string, std::string>* librariesList);
-	static void WriteIniConfigs(const std::unordered_map<std::string, std::string>& binariesList, const std::unordered_map<std::string, std::string>& librariesList);
+	static void WriteIniConfigs(const std::unordered_map<std::string, std::string>& binariesList);
 
 #ifdef WIN32
 	static void FindPythonOnWindows();

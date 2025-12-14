@@ -65,6 +65,13 @@ const std::unordered_map<std::string, std::function<bool(const nlohmann::json&)>
 			MesonBuilder::EnableVenv();
 			MesonBuilder::ApplyVenv();
 			ProcessDispatcher::AppendDirectoryToPath(Placeholders::GetPlaceholder("install_prefix"));
+#ifndef WIN32
+			std::string libPath = Placeholders::GetPlaceholder("install_prefix") + "/lib";
+			std::string binPath = Placeholders::GetPlaceholder("install_prefix") + "/bin";
+			ProcessDispatcher::AppendDirectoryToPath(libPath);
+			ProcessDispatcher::AppendDirectoryToPath(binPath);
+			ProcessDispatcher::AppendVariable("LD_LIBRARY_PATH", libPath);
+#endif
 			MesonBuilder::InstallMeson();
 			return true;
 		}
