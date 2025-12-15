@@ -91,6 +91,17 @@ const std::string& ProcessDispatcher::GetExecutableLocation()
 
 #ifdef WIN32
 
+void ProcessDispatcher::ApplyPathPlaceholder()
+{
+    char* path = new char[65536];
+    GetEnvironmentVariableA("PATH", path, 65536);
+    Placeholders::SetPlaceholder("path", path);
+    std::string msysPath = ConvertFullPathListToMsys(path);
+    std::string escapedPath = Utils::EscapeChars(msysPath);
+    Placeholders::SetPlaceholder("msys_escaped_path", escapedPath);
+    delete[] path;
+}
+
 void ProcessDispatcher::FilterPathOnWindows()
 {
     char* path = new char[32768];
@@ -170,15 +181,7 @@ void ProcessDispatcher::InitVCEnv(const std::string& cmd)
 
 	ExecuteOutputCommand(command, &output);
     ApplyEnvironment(output);
-
-    char* path = new char[65536];
-    GetEnvironmentVariableA("PATH", path, 65536);
-    Placeholders::SetPlaceholder("path", path);
-    std::string msysPath = ConvertFullPathListToMsys(path);
-    std::string escapedPath = Utils::EscapeChars(msysPath);
-    Placeholders::SetPlaceholder("msys_escaped_path", escapedPath);
-    delete[] path;
-
+    ApplyPathPlaceholder();
 }
 
 void ProcessDispatcher::ApplyVSEnvironment()
@@ -191,6 +194,10 @@ void ProcessDispatcher::ApplyVSEnvironment()
         std::string ninjaPath = ProcessDispatcher::ValidateVSNinjaPath(vsBasePath);
         ProcessDispatcher::InitVCEnv(vcEnvPath);
         ProcessDispatcher::AppendDirectoryToPath(ninjaPath);
+    }
+    else
+    {
+        ApplyPathPlaceholder();
     }
 }
 

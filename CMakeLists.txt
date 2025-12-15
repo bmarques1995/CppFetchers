@@ -13,5 +13,11 @@ endif()
 
 project("CppFetchers")
 
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_helpers")
+include(dep_tracer)
+
 # Inclua subprojetos.
 add_subdirectory("RepoFetcher")
+if(NOT FETCHER_BOOTSTRAP)
+	add_subdirectory("FileFetcher")
+endif()

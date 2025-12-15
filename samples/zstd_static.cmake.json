@@ -1,0 +1,34 @@
+{
+  "git": {
+    "location": "https://github.com/facebook/zstd.git",
+    "output_suffix": "zstd",
+    "branch": "release",
+    "commit": "f8745da6ff1ad1e7bab384bd1f9d742439278e99",
+    "patch": ""
+
+  },
+  "cmake": {
+    "build_system": "default",
+    "relative_root_location": "build/cmake",
+    "flags": [ "BUILD_SHARED_LIBS=OFF" ],
+    "os_properties": {
+      "windows": {
+        "build_system": "\"MSYS Makefiles\"",
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++"
+      },
+      "linux": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++"
+      },
+      "macos": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++"
+      },
+      "freebsd": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++"
+      }
+    }
+  }
+}

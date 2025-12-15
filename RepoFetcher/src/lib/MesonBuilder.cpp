@@ -4,6 +4,7 @@
 #include "FileHandler.hpp"
 #include "Utils.hpp"
 #include <iostream>
+#include <sstream>
 
 #ifdef WIN32
 #include <windows.h>

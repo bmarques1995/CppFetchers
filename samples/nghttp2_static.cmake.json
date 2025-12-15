@@ -1,0 +1,32 @@
+{
+    "git": {
+        "location": "https://github.com/nghttp2/nghttp2.git",
+        "output_suffix": "nghttp2",
+        "branch": "",
+        "commit": "534b74b72524e962c18c7146470914632ca7eb2d"
+    },
+    "cmake": {
+        "build_system": "default",
+        "relative_root_location": "",
+        "flags": [ "ENABLE_LIB_ONLY=ON", "BUILD_STATIC_LIBS=ON", "BUILD_SHARED_LIBS=OFF", "CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded" ],
+        "os_properties": {
+            "windows": {
+                "build_system": "\"MSYS Makefiles\"",
+                "c_compiler": "clang",
+                "cxx_compiler": "clang++"
+            },
+            "linux": {
+                "c_compiler": "clang",
+                "cxx_compiler": "clang++"
+            },
+            "macos": {
+                "c_compiler": "clang",
+                "cxx_compiler": "clang++"
+            },
+            "freebsd": {
+                "c_compiler": "clang",
+                "cxx_compiler": "clang++"
+            }
+        }
+    }
+}

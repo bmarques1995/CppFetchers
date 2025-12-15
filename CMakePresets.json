@@ -39,6 +39,44 @@
             }
         },
         {
+            "name": "msys-base",
+            "hidden": true,
+            "generator": "MSYS Makefiles",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "installDir": "${sourceDir}/out/install/${presetName}",
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+                "CMAKE_CURRENT_PRESET": "${presetName}"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "msys-debug",
+            "displayName": "MSYS Debug",
+            "inherits": "msys-base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "msys-release",
+            "displayName": "MSYS Release",
+            "inherits": "msys-debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
             "name": "linux-base",
             "hidden": true,
             "generator": "Ninja",

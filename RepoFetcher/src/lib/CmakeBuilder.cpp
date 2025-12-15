@@ -48,7 +48,8 @@ void CmakeBuilder::GetCmakeGenCommandArgList(const nlohmann::json& data, std::ve
 {
 	std::stringstream commandStream;
 	std::stringstream pathBuilder;
-	
+	std::string osFieldPrefix = "os_properties";
+
 	assert(data.contains("build_system"));
 	assert(data.contains("module_path_name"));
 	assert(data.contains("build_mode"));
@@ -59,6 +60,13 @@ void CmakeBuilder::GetCmakeGenCommandArgList(const nlohmann::json& data, std::ve
 	std::string buildMode = data["build_mode"].get<std::string>();
 	std::string installPrefix = data["install_prefix"].get<std::string>();
 	std::string generator = data["build_system"].get<std::string>();
+	if (data[osFieldPrefix].contains(Utils::s_SystemName))
+	{
+		if (data[osFieldPrefix][Utils::s_SystemName].contains("build_system"))
+		{
+			generator = data[osFieldPrefix][Utils::s_SystemName]["build_system"].get<std::string>();
+		}
+	}
 #ifdef WIN32
 	std::string compilerPath = "";
 	if (data.contains("compiler_path"))
@@ -73,7 +81,7 @@ void CmakeBuilder::GetCmakeGenCommandArgList(const nlohmann::json& data, std::ve
 	{
 		flags = data["flags"].get<std::vector<std::string>>();
 	}
-	std::string osFieldPrefix = "os_properties";
+	
 	if (data[osFieldPrefix][Utils::s_SystemName].contains("flags"))
 	{
 		std::vector<std::string> systemFlags = data[osFieldPrefix][Utils::s_SystemName]["flags"].get<std::vector<std::string>>();

@@ -26,6 +26,7 @@ public:
 
 #ifdef WIN32
 
+	static void ApplyPathPlaceholder();
 	static void FilterPathOnWindows();
 	static std::string ExtractVSBasePath(const std::string& path);
 	static std::string ValidateVSNinjaPath(const std::string& path);

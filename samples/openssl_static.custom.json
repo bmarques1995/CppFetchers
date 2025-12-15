@@ -1,0 +1,33 @@
+{
+    "git": {
+        "location": "https://github.com/openssl/openssl.git",
+        "output_suffix": "openssl",
+        "branch": "",
+        "commit": "7b371d80d959ec9ab4139d09d78e83c090de9779",
+        "patch": ""
+
+    },
+    "command": {
+        "test_programs": [ "perl", "make", "nasm" ],
+        "build_args": [ "make" ],
+        "install_args": [ "make", "install" ],
+        "run_on_repo_root": true,
+        "os_properties": {
+            "windows": {
+                "test_programs": [ "bash", "make", "nasm" ],
+                "gen_options": [
+                    "bash",
+                    "-lc",
+                    "\"export PATH={msys_escaped_path} && cd {msys_escaped_module_path} && CC=clang perl ./Configure mingw64 --{lower_build_mode} --prefix={msys_escaped_install_prefix} --openssldir={msys_escaped_install_prefix}/openssl no-shared --with-zlib-include={msys_escaped_install_prefix}/include --with-zlib-lib={msys_escaped_install_prefix}/lib --with-zstd-include={msys_escaped_install_prefix}/include --with-zstd-lib={msys_escaped_install_prefix}/lib --with-brotli-include={msys_escaped_install_prefix}/include --with-brotli-lib={msys_escaped_install_prefix}/lib\""
+                ],
+                "build_args": [ "make", "-j6" ],
+                "install_args": [ "make", "install" ]
+            }
+        },
+        "gen_options": [
+            "bash",
+            "-lc",
+            "\"cd {module_path} && CC=clang ./Configure --{lower_build_mode} --prefix={install_prefix} --openssldir={install_prefix}/openssl no-shared --with-zlib-include={install_prefix}/include --with-zlib-lib={install_prefix}/lib --with-zstd-include={install_prefix}/include --with-zstd-lib={install_prefix}/lib --with-brotli-include={install_prefix}/include --with-brotli-lib={install_prefix}/lib\""
+        ]
+    }
+}

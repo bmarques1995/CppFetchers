@@ -1,0 +1,35 @@
+
+{
+    "git": {
+        "location": "https://github.com/google/brotli.git",
+        "output_suffix": "brotli",
+        "branch": "",
+        "commit": "028fb5a23661f123017c060daa546b55cf4bde29",
+        "patch": "brotli.patch"
+
+    },
+    "cmake": {
+        "build_system": "default",
+        "relative_root_location": "",
+        "flags": [ "-DBUILD_SHARED_LIBS=OFF" ],
+        "os_properties": {
+            "windows": {
+                "build_system": "\"MSYS Makefiles\"",
+                "c_compiler": "clang",
+                "cxx_compiler": "clang++"
+            },
+            "linux": {
+                "c_compiler": "clang",
+                "cxx_compiler": "clang++"
+            },
+            "macos": {
+                "c_compiler": "clang",
+                "cxx_compiler": "clang++"
+            },
+            "freebsd": {
+                "c_compiler": "clang",
+                "cxx_compiler": "clang++"
+            }
+        }
+    }
+}
