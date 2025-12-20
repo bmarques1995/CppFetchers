@@ -38,3 +38,8 @@ const char* InvalidCertLocation::what() const noexcept
 {
     return "Certificate file not found, a new one will be downloaded\njust run the program again\n";
 }
+
+const char* InvalidCert::what() const noexcept
+{
+    return "Certificate not valid\n";
+}

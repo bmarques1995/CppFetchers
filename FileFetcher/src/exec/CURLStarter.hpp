@@ -11,6 +11,12 @@ public:
     const char* what() const noexcept override;
 };
 
+class InvalidCert : public std::exception
+{
+public:
+    const char* what() const noexcept override;
+};
+
 class CURLStarter
 {
 public:

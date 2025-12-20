@@ -21,7 +21,7 @@ trace_dependency(NAME curl INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/samples/libcurl
 set(TARGET_NAME FileFetcher)
 add_executable(${TARGET_NAME} ${REPO_EXEC_SRCS} ${REPO_EXEC_HDRS})
 target_include_directories(${TARGET_NAME} PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/exec>)
-target_link_libraries(${TARGET_NAME} PRIVATE RepoFetcherLib CURL::libcurl)
+target_link_libraries(${TARGET_NAME} PRIVATE RepoFetcherLib CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
 
 set_property(TARGET ${TARGET_NAME}  PROPERTY CXX_STANDARD 20)
 
