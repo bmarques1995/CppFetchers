@@ -1,6 +1,5 @@
 #include "ProcessDispatcher.hpp"
 
-#include <iostream>
 #include <cstring>
 #include <sstream>
 #include <filesystem>
@@ -12,7 +11,6 @@
 #include <windows.h>
 #include <regex>
 #else
-#include <exception>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>

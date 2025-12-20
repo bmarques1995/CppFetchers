@@ -3,6 +3,7 @@
 #include <string>
 #include <utility>
 #include <memory>
+#include "RawBuffer.hpp"
 
 class FileHandler
 {
@@ -11,9 +12,10 @@ public:
 	static bool WriteTextFile(std::string_view path, std::string content);
 	static bool ReadBinFile(std::string_view path, std::byte** content, size_t* fileSize);
 	static bool WriteBinFile(std::string_view path, std::byte* content, size_t dataSize);
+	static bool ReadBinFile(std::string_view path, std::shared_ptr<RawBuffer>* content);
+	static bool WriteBinFile(std::string_view path, const std::shared_ptr<RawBuffer>& content);
 
 	static bool DeleteFileAt(std::string_view path);
-
 	static bool FileExists(std::string_view path);
 };
 

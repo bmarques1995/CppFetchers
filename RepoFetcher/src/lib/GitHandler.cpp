@@ -58,7 +58,10 @@ bool GitHandler::CloneRepository(std::string_view url, std::string_view repoSuff
 	dirStream << projectDirectory.data() << "/" << s_ModuleInfix << "/" << repoSuffix.data();
 	std::string directory = dirStream.str();
 	args.push_back(directory);
-    return ProcessDispatcher::ExecuteCommand("git", args, ProcessDispatcher::GetExecutableLocation());
+    bool gitRun = ProcessDispatcher::ExecuteCommand("git", args, ProcessDispatcher::GetExecutableLocation());
+	ProcessDispatcher::ExecuteCommand("git", { "clean", "-dfx" }, directory.data());
+	ProcessDispatcher::ExecuteCommand("git", { "reset", "--hard" }, directory.data());
+	return gitRun;
 }
 
 bool GitHandler::ApplyPatch(std::string_view directory, std::string_view patchDirectory)

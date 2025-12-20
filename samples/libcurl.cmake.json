@@ -3,12 +3,13 @@
         "location": "https://github.com/curl/curl.git",
         "output_suffix": "curl",
         "branch": "",
-        "commit": "400fffa90f30c7a2dc762fa33009d24851bd2016"
+        "commit": "400fffa90f30c7a2dc762fa33009d24851bd2016",
+        "patch": "curl.patch"
     },
   "cmake": {
     "build_system": "default",
     "relative_root_location": "",
-    "flags": [ "BUILD_CURL_EXE=OFF", "BUILD_STATIC_LIBS=OFF", "BUILD_SHARED_LIBS=ON", "CURL_USE_LIBPSL=OFF", "USE_LIBIDN2=OFF" ],
+    "flags": [ "BUILD_CURL_EXE=OFF", "BUILD_STATIC_LIBS=OFF", "BUILD_SHARED_LIBS=ON", "CURL_USE_LIBPSL=OFF", "USE_LIBIDN2=OFF", "CURL_USE_OPENSSL=ON", "LINK_NGHTTP2_STATIC=OFF", "USE_NGHTTP2_CMAKE_TARGETS=ON" ],
     "os_properties": {
       "windows": {
         "c_compiler": "cl",

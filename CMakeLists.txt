@@ -13,6 +13,9 @@ endif()
 
 project("CppFetchers")
 
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX})
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/lib64")
+
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_helpers")
 include(dep_tracer)
 

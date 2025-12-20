@@ -18,7 +18,7 @@
 #include "Utils.hpp"
 #include <fmt/core.h>
 
-const std::unordered_map<std::string, std::function<void(nlohmann::json*)>> s_BuildVendors =
+inline const std::unordered_map<std::string, std::function<void(nlohmann::json*)>> s_BuildVendors =
 { 
 	{
 		".cmake", [](nlohmann::json* info)
@@ -49,7 +49,7 @@ const std::unordered_map<std::string, std::function<void(nlohmann::json*)>> s_Bu
 	
 };
 
-const std::unordered_map<std::string, std::function<bool(const nlohmann::json&)>> s_BuildVendorsLocated =
+inline const std::unordered_map<std::string, std::function<bool(const nlohmann::json&)>> s_BuildVendorsLocated =
 {
 	{
 		".cmake", [](const nlohmann::json&) -> bool
@@ -148,7 +148,8 @@ int main(int argc, char** argv)
 	auto vendorTestIt = s_BuildVendorsLocated.find(vendor);
 	if (vendorTestIt == s_BuildVendorsLocated.end())
 	{
-		std::cerr << "Vendor " << vendor << " not supported\n";
+		
+		std::cerr << "\nVendor " << vendor << " not supported\n";
 		std::exit(65);
 	}
 
@@ -167,8 +168,6 @@ int main(int argc, char** argv)
 		std::cerr << "Vendor " << vendor << " not supported\n";
 		std::exit(65);
 	}
-
-	
 	
 	std::string currentPath = std::filesystem::current_path().string();
 	ProcessDispatcher::SetExecutableLocation(currentPath);

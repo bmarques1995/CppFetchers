@@ -1,0 +1,84 @@
+From d0513d1332a133f22625076cdf14ade1232e834f Mon Sep 17 00:00:00 2001
+From: bmarques1995 <testebash@outlook.com>
+Date: Mon, 15 Dec 2025 17:28:45 -0300
+Subject: [PATCH] patch
+
+---
+ lib/CMakeLists.txt             |  4 +++-
+ lib/includes/nghttp2/nghttp2.h | 38 ++++++++++++++++------------------
+ 2 files changed, 21 insertions(+), 21 deletions(-)
+
+diff --git a/lib/CMakeLists.txt b/lib/CMakeLists.txt
+index 98e3dbe7..aeb3ed59 100644
+--- a/lib/CMakeLists.txt
++++ b/lib/CMakeLists.txt
+@@ -87,6 +87,8 @@ if(BUILD_SHARED_LIBS)
+     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+   )
+ 
++  target_compile_definitions(${SHARED_LIB} PUBLIC "NGHTTP2_SHAREDLIB")
++
+   install(TARGETS ${SHARED_LIB}
+     EXPORT ${NGHTTP2_TARGETS_EXPORT_NAME}
+     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+@@ -111,7 +113,7 @@ if(BUILD_STATIC_LIBS)
+     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+   )
+ 
+-  target_compile_definitions(${STATIC_LIB} PUBLIC "-DNGHTTP2_STATICLIB")
++  target_compile_definitions(${STATIC_LIB} PUBLIC "NGHTTP2_STATICLIB")
+ 
+   install(TARGETS ${STATIC_LIB}
+     EXPORT ${NGHTTP2_TARGETS_EXPORT_NAME}
+diff --git a/lib/includes/nghttp2/nghttp2.h b/lib/includes/nghttp2/nghttp2.h
+index 19c1874f..e299b204 100644
+--- a/lib/includes/nghttp2/nghttp2.h
++++ b/lib/includes/nghttp2/nghttp2.h
+@@ -55,26 +55,24 @@ extern "C" {
+ 
+ #include <nghttp2/nghttp2ver.h>
+ 
+-#ifdef NGHTTP2_STATICLIB
+-#  define NGHTTP2_EXTERN
+-#elif defined(WIN32) ||                                                        \
+-  (__has_declspec_attribute(dllexport) && __has_declspec_attribute(dllimport))
+-#  ifdef BUILDING_NGHTTP2
+-#    define NGHTTP2_EXTERN __declspec(dllexport)
+-#  else /* !BUILDING_NGHTTP2 */
+-#    define NGHTTP2_EXTERN __declspec(dllimport)
+-#  endif /* !BUILDING_NGHTTP2 */
+-#else    /* !defined(WIN32) */
+-#  ifdef BUILDING_NGHTTP2
+-#    define NGHTTP2_EXTERN __attribute__((visibility("default")))
+-#  else /* !BUILDING_NGHTTP2 */
+-#    define NGHTTP2_EXTERN
+-#  endif /* !BUILDING_NGHTTP2 */
+-#endif   /* !defined(WIN32) */
+-
+-#ifdef BUILDING_NGHTTP2
+-#  undef NGHTTP2_NO_SSIZE_T
+-#endif /* BUILDING_NGHTTP2 */
++#define NGHTTP2_EXTERN
++
++#ifdef NGHTTP2_SHAREDLIB
++#   undef NGHTTP2_EXTERN
++#   ifdef WIN32
++#       ifdef BUILDING_NGHTTP2
++#           define NGHTTP2_EXTERN __declspec(dllexport)
++#       else
++#           define NGHTTP2_EXTERN __declspec(dllimport)
++#       endif
++#   else
++#       ifdef BUILDING_NGHTTP2
++#           define NGHTTP2_EXTERN __attribute__((visibility("default")))
++#       else /* !BUILDING_NGHTTP2 */
++#           define NGHTTP2_EXTERN
++#       endif /* !BUILDING_NGHTTP2 */
++#   endif /* !WIN32 */
++#endif /* NGHTTP2_SHAREDLIB */
+ 
+ /**
+  * @typedef
+-- 
+2.52.0.windows.1
+

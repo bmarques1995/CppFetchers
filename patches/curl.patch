@@ -1,0 +1,65 @@
+From 27a77fe60ccdc6c8f4e14e45b7e085dd83cd2c44 Mon Sep 17 00:00:00 2001
+From: bmarques1995 <testebash@outlook.com>
+Date: Mon, 15 Dec 2025 16:01:55 -0300
+Subject: [PATCH] patch test
+
+---
+ CMakeLists.txt | 39 +++++++++++++++++++++++++++++----------
+ 1 file changed, 29 insertions(+), 10 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 4772a6219a..006979a4c3 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1138,19 +1138,38 @@ if(USE_SSLS_EXPORT)
+ endif()
+ 
+ option(USE_NGHTTP2 "Use nghttp2 library" ON)
++option(LINK_NGHTTP2_STATIC "Link nghttp2 statically" OFF)
++option(USE_NGHTTP2_CMAKE_TARGETS "Use nghttp2 CMake config targets" OFF)
++
+ if(USE_NGHTTP2)
+-  find_package(NGHTTP2)
+-  if(NGHTTP2_FOUND)
+-    list(APPEND CURL_LIBS ${NGHTTP2_LIBRARIES})
+-    list(APPEND CURL_LIBDIRS ${NGHTTP2_LIBRARY_DIRS})
+-    list(APPEND LIBCURL_PC_REQUIRES_PRIVATE ${NGHTTP2_PC_REQUIRES})
+-    include_directories(SYSTEM ${NGHTTP2_INCLUDE_DIRS})
+-    link_directories(${NGHTTP2_LIBRARY_DIRS})
+-    if(NGHTTP2_CFLAGS)
+-      string(APPEND CMAKE_C_FLAGS " ${NGHTTP2_CFLAGS}")
++  if(USE_NGHTTP2_CMAKE_TARGETS)
++    find_package(nghttp2)
++    if(nghttp2_FOUND)
++      if(LINK_NGHTTP2_STATIC)
++        list(APPEND CURL_LIBS nghttp2::nghttp2_static)
++        list(APPEND LIBCURL_PC_REQUIRES_PRIVATE nghttp2::nghttp2_static)
++      else()
++        list(APPEND CURL_LIBS nghttp2::nghttp2)
++        list(APPEND LIBCURL_PC_REQUIRES_PRIVATE nghttp2::nghttp2)
++      endif()
++    else()
++      set(USE_NGHTTP2 OFF)
+     endif()
++    
+   else()
+-    set(USE_NGHTTP2 OFF)
++    find_package(NGHTTP2)
++    if(NGHTTP2_FOUND)
++      list(APPEND CURL_LIBS ${NGHTTP2_LIBRARIES})
++      list(APPEND CURL_LIBDIRS ${NGHTTP2_LIBRARY_DIRS})
++      list(APPEND LIBCURL_PC_REQUIRES_PRIVATE ${NGHTTP2_PC_REQUIRES})
++      include_directories(SYSTEM ${NGHTTP2_INCLUDE_DIRS})
++      link_directories(${NGHTTP2_LIBRARY_DIRS})
++      if(NGHTTP2_CFLAGS)
++        string(APPEND CMAKE_C_FLAGS " ${NGHTTP2_CFLAGS}")
++      endif()
++    else()
++      set(USE_NGHTTP2 OFF)
++    endif()
+   endif()
+ endif()
+ 
+-- 
+2.52.0.windows.1
+

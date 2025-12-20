@@ -3,14 +3,23 @@
         {
             "type": "lldb-dap",
             "request": "launch",
-            "name": "Linux Debug",
+            "name": "Linux RepoFetcher",
             "program": "${workspaceFolder}/out/build/linux-debug/RepoFetcher/RepoFetcher",
             "cwd": "${workspaceFolder}",
             "args": [
-                "/mnt/d/cpp/CppFetchers/samples/libpq.meson.json",
+                "/mnt/d/cpp/CppFetchers/samples/openssl_static.custom.json",
                 "Debug",
-                "/mnt/d/cpp/CppFetchers/Linux/Debug",
+                "/mnt/d/cpp/CppFetchers/out/install/linux-debug",
                 "/mnt/d/cpp/CppFetchers"
+            ],
+        },
+        {
+            "type": "lldb-dap",
+            "request": "launch",
+            "name": "Linux FileFetcher",
+            "program": "${workspaceFolder}/out/build/linux-debug/FileFetcher/FileFetcher",
+            "cwd": "${workspaceFolder}",
+            "args": [
             ],
         }
     ],
