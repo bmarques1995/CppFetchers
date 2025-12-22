@@ -1,7 +1,7 @@
-From b50f4bd19df7bcca812f3c88623fb792ef1035c0 Mon Sep 17 00:00:00 2001
+From 1770d715e0ca405937fb0e39896656a4b2b42746 Mon Sep 17 00:00:00 2001
 From: bmarques1995 <testebash@outlook.com>
-Date: Mon, 22 Dec 2025 02:38:29 -0300
-Subject: [PATCH] rebase
+Date: Mon, 22 Dec 2025 12:57:04 -0300
+Subject: [PATCH] patch
 
 ---
  CMakeLists.txt                   |  3 ++-
@@ -32,7 +32,7 @@ index b15be875..223b789d 100644
  OPTION(ENABLE_PCREPOSIX "Enable the use of the system PCREPOSIX library if found" ON)
  OPTION(ENABLE_PCRE2POSIX "Enable the use of the system PCRE2POSIX library if found" ON)
 diff --git a/libarchive/CMakeLists.txt b/libarchive/CMakeLists.txt
-index 4fb91713..5ba911b4 100644
+index 4fb91713..5f973c09 100644
 --- a/libarchive/CMakeLists.txt
 +++ b/libarchive/CMakeLists.txt
 @@ -247,13 +247,16 @@ ENDIF()
@@ -77,7 +77,7 @@ index 4fb91713..5ba911b4 100644
 +  SET(ARCHIVE_PROJECT_CONFIG "${ARCHIVE_GENERATED_DIR}/${PROJECT_NAME}Config.cmake")
 +  SET(ARCHIVE_TARGETS_EXPORT_NAME "${PROJECT_NAME}Targets")
 +  SET(ARCHIVE_CONFIG_INSTALL_DIR "share/cmake/${PROJECT_NAME}")
-+  SET(ARCHIVE_NAMESPACE "GPUOpen::")
++  SET(ARCHIVE_NAMESPACE "libarchive::")
 +  SET(ARCHIVE_VERSION ${PROJECT_VERSION})
 +
 +  INCLUDE(CMakePackageConfigHelpers)
