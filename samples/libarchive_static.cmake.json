@@ -1,0 +1,32 @@
+{
+    "git": {
+        "location": "https://github.com/libarchive/libarchive.git",
+        "output_suffix": "libarchive",
+        "branch": "",
+        "commit": "d114ceee6de08a7a60ff1209492ba38bf9436f79",
+        "patch": "archive.patch"
+    },
+  "cmake": {
+    "build_system": "default",
+    "relative_root_location": "",
+    "flags": [ "BUILD_SHARED_LIBS=OFF", "USE_EXPAT_STATIC=ON" ],
+    "os_properties": {
+      "windows": {
+        "c_compiler": "cl",
+        "cxx_compiler": "cl"
+      },
+      "linux": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++"
+      },
+      "macos": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++"
+      },
+      "freebsd": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++"
+      }
+    }
+  }
+}

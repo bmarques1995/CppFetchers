@@ -1,0 +1,33 @@
+{
+  "git": {
+    "location": "https://github.com/lz4/lz4.git",
+    "output_suffix": "lz4",
+    "branch": "release",
+    "commit": "ebb370ca83af193212df4dcbadcc5d87bc0de2f0",
+    "patch": ""
+
+  },
+  "cmake": {
+    "build_system": "default",
+    "relative_root_location": "build/cmake",
+    "flags": [ "BUILD_SHARED_LIBS=OFF", "BUILD_STATIC_LIBS=ON" ],
+    "os_properties": {
+      "windows": {
+        "c_compiler": "cl",
+        "cxx_compiler": "cl"
+      },
+      "linux": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++"
+      },
+      "macos": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++"
+      },
+      "freebsd": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++"
+      }
+    }
+  }
+}

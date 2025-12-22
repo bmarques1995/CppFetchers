@@ -1,0 +1,34 @@
+
+{
+  "git": {
+    "location": "https://github.com/libexpat/libexpat.git",
+    "output_suffix": "libexpat",
+    "branch": "",
+    "commit": "4575e52f83e0d6d7bd24939eab8952bbc7bc358f",
+    "patch": ""
+
+  },
+  "cmake": {
+    "build_system": "default",
+    "relative_root_location": "expat",
+    "flags": [ "BUILD_SHARED_LIBS=OFF" ],
+    "os_properties": {
+      "windows": {
+        "c_compiler": "cl",
+        "cxx_compiler": "cl"
+      },
+      "linux": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++"
+      },
+      "macos": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++"
+      },
+      "freebsd": {
+        "c_compiler": "clang",
+        "cxx_compiler": "clang++"
+      }
+    }
+  }
+}

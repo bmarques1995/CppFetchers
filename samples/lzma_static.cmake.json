@@ -1,0 +1,32 @@
+{
+    "git": {
+        "location": "https://github.com/tukaani-project/xz.git",
+        "output_suffix": "liblzma",
+        "branch": "",
+        "commit": "3d078b52adbff566ccfc51067dfbf742ecf3ef86",
+        "patch": ""
+    },
+    "cmake": {
+        "build_system": "default",
+        "relative_root_location": "",
+        "flags": [ "BUILD_SHARED_LIBS=OFF" ],
+        "os_properties": {
+            "windows": {
+                "c_compiler": "cl",
+                "cxx_compiler": "cl"
+            },
+            "linux": {
+                "c_compiler": "clang",
+                "cxx_compiler": "clang++"
+            },
+            "macos": {
+                "c_compiler": "clang",
+                "cxx_compiler": "clang++"
+            },
+            "freebsd": {
+                "c_compiler": "clang",
+                "cxx_compiler": "clang++"
+            }
+        }
+    }
+}

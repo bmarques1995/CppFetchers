@@ -1,0 +1,123 @@
+From b50f4bd19df7bcca812f3c88623fb792ef1035c0 Mon Sep 17 00:00:00 2001
+From: bmarques1995 <testebash@outlook.com>
+Date: Mon, 22 Dec 2025 02:38:29 -0300
+Subject: [PATCH] rebase
+
+---
+ CMakeLists.txt                   |  3 ++-
+ libarchive/CMakeLists.txt        | 35 ++++++++++++++++++++++++++++++--
+ libarchive/cmake/config.cmake.in |  3 +++
+ 3 files changed, 38 insertions(+), 3 deletions(-)
+ create mode 100644 libarchive/cmake/config.cmake.in
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b15be875..223b789d 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,7 +1,7 @@
+ #
+ cmake_minimum_required(VERSION 3.17 FATAL_ERROR)
+ 
+-PROJECT(libarchive C)
++PROJECT(libarchive LANGUAGES C VERSION 3.8.4)
+ #
+ # Include standard installation directories
+ include(GNUInstallDirs)
+@@ -231,6 +231,7 @@ OPTION(ENABLE_ZLIB "Enable the use of the system ZLIB library if found" ON)
+ OPTION(ENABLE_BZip2 "Enable the use of the system BZip2 library if found" ON)
+ OPTION(ENABLE_LIBXML2 "Enable the use of the system libxml2 library if found" ON)
+ OPTION(ENABLE_EXPAT "Enable the use of the system EXPAT library if found" ON)
++OPTION(USE_EXPAT_STATIC "Use the static version of the EXPAT library" OFF)
+ OPTION(ENABLE_WIN32_XMLLITE "Enable the use of the Windows XmlLite library if found" ON)
+ OPTION(ENABLE_PCREPOSIX "Enable the use of the system PCREPOSIX library if found" ON)
+ OPTION(ENABLE_PCRE2POSIX "Enable the use of the system PCRE2POSIX library if found" ON)
+diff --git a/libarchive/CMakeLists.txt b/libarchive/CMakeLists.txt
+index 4fb91713..5ba911b4 100644
+--- a/libarchive/CMakeLists.txt
++++ b/libarchive/CMakeLists.txt
+@@ -247,13 +247,16 @@ ENDIF()
+ # Libarchive is a shared library
+ IF(BUILD_SHARED_LIBS)
+   ADD_LIBRARY(archive SHARED ${libarchive_SOURCES} ${include_HEADERS})
+-  TARGET_INCLUDE_DIRECTORIES(archive PUBLIC .)
++  TARGET_INCLUDE_DIRECTORIES(archive PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<INSTALL_INTERFACE:include>)
+   TARGET_LINK_LIBRARIES(archive ${ADDITIONAL_LIBS})
+   SET_TARGET_PROPERTIES(archive PROPERTIES
+                         VERSION ${SOVERSION_FULL}
+                         SOVERSION ${SOVERSION}
+                         MACHO_COMPATIBILITY_VERSION ${MACHO_COMPATIBILITY_VERSION}
+                         MACHO_CURRENT_VERSION ${MACHO_CURRENT_VERSION})
++  IF(USE_EXPAT_STATIC)
++    TARGET_COMPILE_DEFINITIONS(archive PRIVATE XML_STATIC)
++  ENDIF(USE_EXPAT_STATIC)
+   IF(WIN32 AND MSVC AND MSVC_USE_STATIC_CRT)
+     SET_PROPERTY(TARGET archive PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+   ENDIF(WIN32 AND MSVC AND MSVC_USE_STATIC_CRT)
+@@ -261,10 +264,13 @@ ENDIF(BUILD_SHARED_LIBS)
+ 
+ # archive_static is a static library
+ ADD_LIBRARY(archive_static STATIC ${libarchive_SOURCES} ${include_HEADERS})
+-TARGET_INCLUDE_DIRECTORIES(archive_static PUBLIC .)
++TARGET_INCLUDE_DIRECTORIES(archive_static PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<INSTALL_INTERFACE:include>)
+ TARGET_LINK_LIBRARIES(archive_static ${ADDITIONAL_LIBS})
+ SET_TARGET_PROPERTIES(archive_static PROPERTIES COMPILE_DEFINITIONS
+   LIBARCHIVE_STATIC)
++IF(USE_EXPAT_STATIC)
++  TARGET_COMPILE_DEFINITIONS(archive_static PRIVATE XML_STATIC)
++ENDIF(USE_EXPAT_STATIC)
+ IF(WIN32 AND MSVC AND MSVC_USE_STATIC_CRT)
+   SET_PROPERTY(TARGET archive_static PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+ ENDIF(WIN32 AND MSVC AND MSVC_USE_STATIC_CRT)
+@@ -274,14 +280,39 @@ IF(NOT WIN32 OR CYGWIN OR NOT BUILD_SHARED_LIBS)
+ ENDIF(NOT WIN32 OR CYGWIN OR NOT BUILD_SHARED_LIBS)
+ 
+ IF(ENABLE_INSTALL)
++  SET(ARCHIVE_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
++  SET(ARCHIVE_VERSION_CONFIG "${ARCHIVE_GENERATED_DIR}/${PROJECT_NAME}ConfigVersion.cmake")
++  SET(ARCHIVE_PROJECT_CONFIG "${ARCHIVE_GENERATED_DIR}/${PROJECT_NAME}Config.cmake")
++  SET(ARCHIVE_TARGETS_EXPORT_NAME "${PROJECT_NAME}Targets")
++  SET(ARCHIVE_CONFIG_INSTALL_DIR "share/cmake/${PROJECT_NAME}")
++  SET(ARCHIVE_NAMESPACE "GPUOpen::")
++  SET(ARCHIVE_VERSION ${PROJECT_VERSION})
++
++  INCLUDE(CMakePackageConfigHelpers)
++  write_basic_package_version_file(
++    "${ARCHIVE_VERSION_CONFIG}" VERSION ${ARCHIVE_VERSION} COMPATIBILITY SameMajorVersion
++  )
++  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.cmake.in" "${ARCHIVE_PROJECT_CONFIG}" @ONLY)
++
++  # Install cmake config files
++  INSTALL(
++    FILES "${ARCHIVE_PROJECT_CONFIG}" "${ARCHIVE_VERSION_CONFIG}"
++    DESTINATION "${ARCHIVE_CONFIG_INSTALL_DIR}")
++
++  INSTALL(
++    EXPORT "${ARCHIVE_TARGETS_EXPORT_NAME}"
++    NAMESPACE "${ARCHIVE_NAMESPACE}"
++    DESTINATION "${ARCHIVE_CONFIG_INSTALL_DIR}")
+   # How to install the libraries
+   IF(BUILD_SHARED_LIBS)
+     INSTALL(TARGETS archive
++            EXPORT ${ARCHIVE_TARGETS_EXPORT_NAME}
+             RUNTIME DESTINATION bin
+             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+   ENDIF(BUILD_SHARED_LIBS)
+   INSTALL(TARGETS archive_static
++          EXPORT ${ARCHIVE_TARGETS_EXPORT_NAME}
+           RUNTIME DESTINATION bin
+           LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+           ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+diff --git a/libarchive/cmake/config.cmake.in b/libarchive/cmake/config.cmake.in
+new file mode 100644
+index 00000000..f32b689f
+--- /dev/null
++++ b/libarchive/cmake/config.cmake.in
+@@ -0,0 +1,3 @@
++include(CMakeFindDependencyMacro)
++
++include("${CMAKE_CURRENT_LIST_DIR}/@ARCHIVE_TARGETS_EXPORT_NAME@.cmake")
+\ No newline at end of file
+-- 
+2.52.0.windows.1
+
