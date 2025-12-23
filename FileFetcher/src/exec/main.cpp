@@ -48,7 +48,6 @@ int main(int argc, char* argv[])
 
     for (auto& vars : data["vars"])
     {
-        std::cout << "Fetching " << vars["key"] << ": " << vars["value"] << std::endl;
         Placeholders::SetPlaceholder(vars["key"], vars["value"]);
     }
 
@@ -100,12 +99,14 @@ int main(int argc, char* argv[])
     bool isCompressed = data["output"]["is_compressed"];
     if (isCompressed)
     {
-        ArchiveOut archive(m_OutputBuffer, data["output"]["output_dir"]);
+        std::string outputDir = data["output"]["output_dir"].get<std::string>();
+        ArchiveOut archive(m_OutputBuffer, outputDir);
         archive.SaveFiles();
     }
     else
     {
-        FileHandler::WriteBinFile(data["output"]["output_file"], m_OutputBuffer);
+        std::string outputFile = data["output"]["output_file"].get<std::string>();
+        FileHandler::WriteBinFile(outputFile, m_OutputBuffer);
     }
     if (data.contains("log"))
     {

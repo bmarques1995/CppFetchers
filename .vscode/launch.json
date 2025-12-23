@@ -20,6 +20,8 @@
             "program": "${workspaceFolder}/out/build/linux-debug/FileFetcher/FileFetcher",
             "cwd": "${workspaceFolder}",
             "args": [
+                "/mnt/d/cpp/CppFetchers/file_recipes/d3d12_sdk.file.json",
+                "/mnt/d/cpp/CppFetchers"
             ],
         }
     ],
