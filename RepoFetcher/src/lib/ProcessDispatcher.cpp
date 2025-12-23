@@ -95,7 +95,7 @@ void ProcessDispatcher::ApplyPathPlaceholder()
     GetEnvironmentVariableA("PATH", path, 65536);
     Placeholders::SetPlaceholder("path", path);
     std::string msysPath = ConvertFullPathListToMsys(path);
-    std::string escapedPath = Utils::EscapeChars(msysPath);
+    std::string escapedPath = Utils::EscapeCharsForPath(msysPath);
     Placeholders::SetPlaceholder("msys_escaped_path", escapedPath);
     delete[] path;
 }
@@ -136,6 +136,15 @@ std::string ProcessDispatcher::ExtractVSBasePath(const std::string& path)
     }
 
     return "";
+}
+
+std::string ProcessDispatcher::ExtractMSVCLibsPath(const std::string& path)
+{
+    std::filesystem::path msvcLibsPath(path);
+    msvcLibsPath = msvcLibsPath.parent_path().parent_path().parent_path().parent_path();
+    msvcLibsPath /= "lib\\x64";
+    std::string msvcLibsPathStr = msvcLibsPath.string();
+    return msvcLibsPathStr;
 }
 
 std::string ProcessDispatcher::ValidateVSNinjaPath(const std::string& path)
@@ -190,8 +199,10 @@ void ProcessDispatcher::ApplyVSEnvironment()
         std::string vsBasePath = ProcessDispatcher::ExtractVSBasePath(compilerPath);
         std::string vcEnvPath = ProcessDispatcher::ValidateVCEnvPath(vsBasePath);
         std::string ninjaPath = ProcessDispatcher::ValidateVSNinjaPath(vsBasePath);
+        std::string msvcLibsPath = ProcessDispatcher::ExtractMSVCLibsPath(compilerPath);
         ProcessDispatcher::InitVCEnv(vcEnvPath);
         ProcessDispatcher::AppendDirectoryToPath(ninjaPath);
+		ProcessDispatcher::AppendDirectoryToPath(msvcLibsPath);
     }
     else
     {

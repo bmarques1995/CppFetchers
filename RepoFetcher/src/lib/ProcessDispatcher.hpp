@@ -29,6 +29,7 @@ public:
 	static void ApplyPathPlaceholder();
 	static void FilterPathOnWindows();
 	static std::string ExtractVSBasePath(const std::string& path);
+	static std::string ExtractMSVCLibsPath(const std::string& path);
 	static std::string ValidateVSNinjaPath(const std::string& path);
 	static std::string ValidateVCEnvPath(const std::string& path);
 	static void InitVCEnv(const std::string& cmd);

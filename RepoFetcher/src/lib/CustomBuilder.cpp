@@ -44,7 +44,7 @@ void CustomBuilder::ExecuteCommand(const nlohmann::json& data, std::string arg_l
 		
 #ifdef WIN32
 		shell = Utils::SaveShellCommand(finalInstallArgs[1], "install");
-		finalInstallArgs[1] = Utils::EscapeChars(Utils::WindowsPathToMsys(shell));
+		finalInstallArgs[1] = Utils::EscapeCharsForPath(Utils::WindowsPathToMsys(shell));
 #else
 		shell = Utils::SaveShellCommand(finalInstallArgs[0], "install");
 		finalInstallArgs[0] = shell;

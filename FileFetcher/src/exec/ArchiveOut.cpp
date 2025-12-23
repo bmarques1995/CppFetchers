@@ -11,6 +11,8 @@ ArchiveOut::ArchiveOut(const std::shared_ptr<RawBuffer>& buffer, std::string_vie
         return;
 
     archive_read_support_format_tar(m_Archive);
+	archive_read_support_format_ar(m_Archive);
+	archive_read_support_format_cpio(m_Archive);
     archive_read_support_format_zip(m_Archive);
     archive_read_support_filter_all(m_Archive);
 
@@ -31,11 +33,10 @@ void ArchiveOut::SaveFiles()
     fs::create_directories(m_OutputDir);
 
     archive_entry* entry;
-	
 
-    while (archive_read_next_header(m_Archive, &entry) == ARCHIVE_OK) {
-
-        fs::path rel_path = RebaseRoot(archive_entry_pathname(entry), m_OutputDir);
+    while (archive_read_next_header(m_Archive, &entry) == ARCHIVE_OK)
+    {
+        fs::path rel_path = GetOutputPath(archive_entry_pathname(entry));
 
         if (!IsPathSafe(rel_path)) {
             std::cerr << "Skipping unsafe path: " << rel_path << '\n';
@@ -97,6 +98,20 @@ bool ArchiveOut::IsPathSafe(const std::filesystem::path& p)
             return false;
     }
     return true;
+}
+
+std::filesystem::path ArchiveOut::GetOutputPath(const std::filesystem::path& p)
+{
+    fs::path rel_path;
+    if(archive_format(m_Archive) == ARCHIVE_FORMAT_ZIP)
+    {
+        rel_path = m_OutputDir / p;
+    }
+    if(archive_format(m_Archive) == ARCHIVE_FORMAT_TAR)
+	{
+		rel_path = RebaseRoot(p, m_OutputDir);
+	}
+    return rel_path;
 }
 
 std::filesystem::path ArchiveOut::RebaseRoot(const fs::path& p, const fs::path& new_root)

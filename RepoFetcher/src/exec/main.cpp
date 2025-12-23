@@ -173,7 +173,6 @@ int main(int argc, char** argv)
 	ProcessDispatcher::SetExecutableLocation(currentPath);
 	GitHandler::ExecuteGitBatch(data, argv[4]);
 	vendorIt->second(&data);
-
 	return 0;
 }
 

@@ -1,0 +1,10 @@
+{
+    "location": "https://alpha.gnu.org/gnu/make/make-4.4.0.91.tar.gz",
+    "name": "make",
+    "vars": [
+    ],
+    "output": {
+        "is_compressed": true,
+        "output_dir": "make"
+    }
+}

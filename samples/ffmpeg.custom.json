@@ -17,9 +17,9 @@
                 "gen_options": [
                     "bash",
                     "-lc",
-                    "\"export PATH={msys_escaped_path} && cd {msys_escaped_module_path} && CC=cl ./configure --prefix={msys_escaped_install_prefix} --toolchain=msvc --disable-everything --enable-demuxer=matroska --enable-demuxer=webm --enable-parser=av1 --enable-avcodec --enable-avformat --enable-avutil --enable-shared --disable-static --disable-programs [Debug:--enable-debug] [Debug:--disable-optimizations] [Debug:--disable-stripping] [Release:--enable-optimizations] [Release:--enable-stripping]\""
+                    "\"export PATH={msys_escaped_path} && cd {msys_escaped_module_path} && export MSYS2_ARG_CONV_EXCL=\"*\" && export MSYS_NO_PATHCONV=1 && CC=cl LD=link ./configure --prefix={msys_escaped_install_prefix} --toolchain=msvc [Debug:--extra-cflags=\"/MDd\"] [Release:--extra-cflags=\"/MD\"] --disable-everything --enable-demuxer=matroska --enable-demuxer=webm --enable-parser=av1 --enable-avcodec --enable-avformat --enable-avutil --enable-shared --disable-static --disable-programs [Debug:--enable-debug] [Debug:--disable-optimizations] [Debug:--disable-stripping] [Release:--enable-optimizations] [Release:--enable-stripping]\""
                 ],
-                "build_args": [ "make" ],
+                "build_args": [ "bash", "-lc", "\"export PATH={msys_escaped_path} && cd {msys_escaped_module_path} && export MSYS2_ARG_CONV_EXCL=\"*\" && export MSYS_NO_PATHCONV=1 && make\"" ],
                 "install_args": [ "make", "install" ]
             }
         },

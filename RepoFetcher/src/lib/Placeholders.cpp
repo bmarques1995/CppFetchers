@@ -1,8 +1,6 @@
 #include "Placeholders.hpp"
 #include <algorithm> // Adicione este include para std::transform
-#ifdef WIN32
 #include "Utils.hpp"
-#endif
 
 std::unordered_map<std::string, std::string> Placeholders::s_Placeholders;
 
@@ -22,8 +20,8 @@ void Placeholders::SetPlaceholders(const std::string& buildMode, const std::stri
 #ifdef WIN32
 	std::replace(s_Placeholders["install_prefix"].begin(), s_Placeholders["install_prefix"].end(), '/', '\\');
 	std::replace(s_Placeholders["modules_root"].begin(), s_Placeholders["modules_root"].end(), '/', '\\');
-	s_Placeholders["msys_escaped_install_prefix"] = Utils::EscapeChars(Utils::WindowsPathToMsys(installPrefix));
-	s_Placeholders["msys_escaped_modules_root"] = Utils::EscapeChars(Utils::WindowsPathToMsys(modulePathname));
+	s_Placeholders["msys_escaped_install_prefix"] = Utils::EscapeCharsForPath(Utils::WindowsPathToMsys(installPrefix));
+	s_Placeholders["msys_escaped_modules_root"] = Utils::EscapeCharsForPath(Utils::WindowsPathToMsys(modulePathname));
 #endif
 }
 
@@ -39,7 +37,7 @@ std::string Placeholders::GetPlaceholder(std::string key)
 {
 	auto it = s_Placeholders.find(key);
 	if (it == s_Placeholders.end())
-		return "";
+		throw PlaceholderException("Placeholder <" + key + "> not found");
 	return s_Placeholders[key];
 }
 

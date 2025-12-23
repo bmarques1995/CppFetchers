@@ -53,7 +53,7 @@ std::string Utils::WindowsPathToMsys(const std::string& win)
 	return win;
 }
 
-std::string Utils::EscapeChars(const std::string& input)
+std::string Utils::EscapeCharsForPath(const std::string& input)
 {
 	// 3. Escape spaces
 	std::string escaped;
@@ -70,6 +70,177 @@ std::string Utils::EscapeChars(const std::string& input)
 
 #endif // 
 
+std::string Utils::ProcessPlaceholders(const std::string& input)
+{
+	std::string out;
+	out.reserve(input.size());
+
+	for (size_t i = 0; i < input.size(); ) {
+		char c = input[i];
+
+		// Escape handling
+		if (c == '\\') {
+			if (i + 1 >= input.size())
+				throw PlaceholderException("Dangling escape");
+
+			char next = input[i + 1];
+
+			if (next == '{' || next == '}') {
+				out.push_back(next);
+				i += 2;
+				continue;
+			}
+			out.push_back(next);
+			i += 2;
+			continue;
+		}
+
+		if (c == '{') {
+			size_t start = ++i;
+
+			if (i >= input.size())
+				throw PlaceholderException("Unclosed '{'");
+
+			while (i < input.size() && input[i] != '}')
+				++i;
+
+			if (i == input.size())
+				throw PlaceholderException("Unclosed '{'");
+
+			if (i == start)
+				throw PlaceholderException("Empty placeholder {}");
+
+			std::string key = input.substr(start, i - start);
+			++i; // consume '}'
+
+			auto value = Placeholders::GetPlaceholder(key);
+
+			out += "{}";
+			out = fmt::format(fmt::runtime(out), value);
+			continue;
+		}
+
+		if (c == '}') {
+			throw PlaceholderException("Unexpected '}'");
+		}
+
+		out.push_back(c);
+		++i;
+	}
+
+	return out;
+}
+
+std::string Utils::ProcessBuildModeConditions(const std::string& input, const std::string& buildMode)
+{
+	std::string out;
+	out.reserve(input.size());
+
+	for (size_t i = 0; i < input.size(); ) {
+		char c = input[i];
+
+		// Escape handling: ONLY \[
+		if (c == '\\') {
+			if (i + 1 >= input.size())
+				throw BuildModeConditionException("Dangling escape");
+
+			char next = input[i + 1];
+
+			if (next == '[') {
+				out.push_back('[');
+				i += 2;
+				continue;
+			}
+
+			// All other escapes: literal next char
+			out.push_back(next);
+			i += 2;
+			continue;
+		}
+
+		// Conditional start
+		if (c == '[') {
+			size_t start = ++i;
+
+			if (i >= input.size())
+				throw BuildModeConditionException("Unclosed '['");
+
+			while (i < input.size() && input[i] != ']')
+				++i;
+
+			if (i == input.size())
+				throw BuildModeConditionException("Unclosed '['");
+
+			std::string block = input.substr(start, i - start);
+			++i;
+
+			auto colon = block.find(':');
+			if (colon == std::string::npos)
+				throw BuildModeConditionException("Conditional missing ':'");
+
+			std::string mode = block.substr(0, colon);
+			std::string value = block.substr(colon + 1);
+			if (mode != "Debug" && mode != "Release")
+				throw BuildModeConditionException("Invalid build mode: " + mode);
+
+			if (mode == buildMode)
+				out += value;
+
+			continue;
+		}
+
+		// Stray closing bracket
+		if (c == ']') {
+			throw BuildModeConditionException("Unexpected ']'");
+		}
+
+		out.push_back(c);
+		++i;
+	}
+
+	return out;
+}
+
+std::string Utils::NormalizeString(const std::string& input)
+{
+	std::string out;
+	out.reserve(input.size());
+
+	bool inWhitespace = false;
+
+	for (char c : input) {
+		bool isWs =
+			c == ' ' ||
+			c == '\t' ||
+			c == '\n' ||
+			c == '\r';
+
+		if (isWs) {
+			// Emit a single space only if we've already written something
+			// and we're not already in a whitespace run
+			if (!inWhitespace && !out.empty()) {
+				out.push_back(' ');
+				inWhitespace = true;
+			}
+		}
+		else {
+			out.push_back(c);
+			inWhitespace = false;
+		}
+	}
+
+	// Remove trailing space if present
+	if (!out.empty() && out.back() == ' ')
+		out.pop_back();
+
+	return out;
+}
+
+std::string Utils::NormalizeFlag(const std::string& flag)
+{
+	return NormalizeString(flag);
+}
+
 std::string Utils::SaveShellCommand(const std::string& command, const std::string& type)
 {
 	std::string shell = Placeholders::GetPlaceholder("module_path");
@@ -85,46 +256,8 @@ std::string Utils::SaveShellCommand(const std::string& command, const std::strin
 std::string Utils::ProcessRawFlag(const std::string& flag)
 {
 	std::string input = flag;
-
-	std::string treatedFlag = flag;
-
-	{
-		std::regex blockRegex(R"(\[([A-Za-z0-9_]+):(.*?)\])");
-		std::smatch match;
-		std::string processed;
-		std::string temp = input;
-
-		auto begin = temp.cbegin();
-		auto end = temp.cend();
-
-		while (std::regex_search(begin, end, match, blockRegex)) {
-			processed.append(match.prefix().str());
-
-			std::string mode = match[1].str();
-			std::string inside = match[2].str();
-
-			if (mode.compare(Placeholders::GetPlaceholder("build_mode")) == 0)
-				processed.append(inside);
-			else
-				return "";
-
-			begin = match.suffix().first;
-			input = processed;
-		}
-	}
-
-	{
-		std::regex re(R"(\{([^}]*)\})");
-		std::smatch match;
-		std::string placeholder;
-		if (std::regex_search(input, match, re)) {
-			placeholder = match[1];   // "install_prefix"
-			treatedFlag = std::regex_replace(input, re, "{}");
-			std::string finalFlag = fmt::format(fmt::runtime(treatedFlag), Placeholders::GetPlaceholder(placeholder));
-			return finalFlag;
-		}
-	}
-
+	input = ProcessBuildModeConditions(input, Placeholders::GetPlaceholder("build_mode"));
+	input = ProcessPlaceholders(input);
 	return input;
 }
 
@@ -136,8 +269,9 @@ std::string Utils::ProcessQuotedFlag(const std::string& flag)
 	std::string processedFlag = "\"";
 	for (std::string part : splitFlag)
 	{
-		std::string flag = ProcessRawFlag(part);
-		processedFlag += ProcessRawFlag(part);
+		std::string processedFlagPart = ProcessRawFlag(part);
+		std::string flag = processedFlagPart;
+		processedFlag += processedFlagPart;
 		if(flag.compare("") != 0)
 			processedFlag += " ";
 	}
@@ -185,4 +319,24 @@ std::vector<std::string> Utils::SplitRespectingEscapedSpaces(const std::string& 
 		result.push_back(current);
 
 	return result;
+}
+
+PlaceholderException::PlaceholderException(const std::string& message) :
+	m_Message(message)
+{
+}
+
+const char* PlaceholderException::what() const noexcept
+{
+	return m_Message.c_str();
+}
+
+BuildModeConditionException::BuildModeConditionException(const std::string& message) :
+	m_Message(message)
+{
+}
+
+const char* BuildModeConditionException::what() const noexcept
+{
+	return m_Message.c_str();
 }

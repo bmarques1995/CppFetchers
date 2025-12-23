@@ -1,0 +1,26 @@
+{
+    "location": "https://globalcdn.nuget.org/packages/microsoft.direct3d.d3d12.{d3d12_sdk_major}.{d3d12_sdk_minor}.{d3d12_sdk_patch}.nupkg",
+    "name": "d3d12_sdk",
+    "vars": [
+        {
+            "key": "d3d12_sdk_major",
+            "value": "1"
+        },
+        {
+            "key": "d3d12_sdk_minor",
+            "value": "618"
+        },
+        {
+            "key": "d3d12_sdk_patch",
+            "value": "5"
+        }
+    ],
+    "log": {
+        "output_file": "d3d12_sdk_version.txt",
+        "content": "{d3d12_sdk_minor}"
+    },
+    "output": {
+        "is_compressed": true,
+        "output_dir": "d3d12_sdk"
+    }
+}

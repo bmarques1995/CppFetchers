@@ -18,6 +18,9 @@ public:
 
 private:
 	bool IsPathSafe(const std::filesystem::path& p);
+
+	std::filesystem::path GetOutputPath(const std::filesystem::path& p);
+
 	std::filesystem::path RebaseRoot(const std::filesystem::path& p, const std::filesystem::path& new_root);
 	std::filesystem::path m_ArchivePath;
 	archive* m_Archive;

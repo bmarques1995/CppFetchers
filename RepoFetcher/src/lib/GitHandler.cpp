@@ -17,7 +17,7 @@ void GitHandler::ExecuteGitBatch(const nlohmann::json& data, const std::string& 
 	std::string outputRepoDir = Utils::GetAbsoluteLocation(outputRepoDirStream.str());
 	Placeholders::SetPlaceholder("module_path", outputRepoDir);
 #ifdef WIN32
-	Placeholders::SetPlaceholder("msys_escaped_module_path", Utils::EscapeChars(Utils::WindowsPathToMsys(outputRepoDir)));
+	Placeholders::SetPlaceholder("msys_escaped_module_path", Utils::EscapeCharsForPath(Utils::WindowsPathToMsys(outputRepoDir)));
 #endif
 	outputRepoDirStream.str("");
 	if (!(data["git"]["commit"].is_null()))
