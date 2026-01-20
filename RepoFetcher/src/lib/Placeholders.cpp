@@ -6,6 +6,7 @@ std::unordered_map<std::string, std::string> Placeholders::s_Placeholders;
 
 void Placeholders::SetPlaceholders(const std::string& buildMode, const std::string& installPrefix, const std::string& modulePathname)
 {
+	s_Placeholders["compiler_path"] = "";
 	s_Placeholders["build_mode"] = buildMode;
 	std::string lowerBuildMode = buildMode;
 	std::transform(lowerBuildMode.begin(), lowerBuildMode.end(), lowerBuildMode.begin(),
@@ -28,8 +29,8 @@ void Placeholders::SetPlaceholders(const std::string& buildMode, const std::stri
 #ifdef WIN32
 void Placeholders::SetPlaceholders(const std::string& buildMode, const std::string& installPrefix, const std::string& modulePathname, const std::string& compilerPath)
 {
-	s_Placeholders["compiler_path"] = compilerPath;
 	SetPlaceholders(buildMode, installPrefix, modulePathname);
+	s_Placeholders["compiler_path"] = compilerPath;
 }
 #endif
 

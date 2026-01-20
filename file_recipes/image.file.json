@@ -1,0 +1,10 @@
+{
+    "location": "https://media.licdn.com/dms/image/v2/D4D22AQHRlTATYjVI0A/feedshare-shrink_1280/B4DZupF9IcG8Aw-/0/1768068471993?e=1769644800&v=beta&t=kOkf4otoWVLVMkHdLmyiH3AVFik1OXup2AC14obWUmQ",
+    "name": "hfw",
+    "vars": [
+    ],
+    "output": {
+        "is_compressed": false,
+        "output_file": "hfw.png"
+    }
+}

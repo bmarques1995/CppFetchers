@@ -108,13 +108,22 @@ int main(int argc, char** argv)
 		std::exit(65);
 	}
 
+	std::string jsonfileFullpath = Utils::ExpandPath(argv[1]);
+	std::string installPrefixFullpath = Utils::ExpandPath(argv[3]);
+	std::string moduleDestinationFullpath = Utils::ExpandPath(argv[4]);
+
+	// 1, 3, 4 e 5
+
 #ifdef WIN32
 	if (argc > 5)
-		Placeholders::SetPlaceholders(argv[2], argv[3], argv[4], argv[5]);
+	{
+		std::string msvcCompilerFullpath = Utils::ExpandPath(argv[5]);
+		Placeholders::SetPlaceholders(argv[2], installPrefixFullpath, moduleDestinationFullpath, msvcCompilerFullpath);
+	}
 	else
-		Placeholders::SetPlaceholders(argv[2], argv[3], argv[4]);
+		Placeholders::SetPlaceholders(argv[2], installPrefixFullpath, moduleDestinationFullpath);
 #else
-	Placeholders::SetPlaceholders(argv[2], argv[3], argv[4]);
+	Placeholders::SetPlaceholders(argv[2], installPrefixFullpath, moduleDestinationFullpath);
 #endif // 
 
 #ifdef WIN32

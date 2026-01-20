@@ -13,6 +13,13 @@ const std::string Utils::s_SystemName = "linux";
 const std::string Utils::s_SystemName = "freebsd";
 #endif
 
+std::string Utils::ExpandPath(const std::string& path)
+{
+	std::filesystem::path expandedPath = std::filesystem::absolute(path);
+	std::string expandedPathStr = expandedPath.string();
+	return expandedPathStr;
+}
+
 std::string Utils::GetAbsoluteLocation(const std::string& path)
 {
 	std::filesystem::path absolutePath = std::filesystem::absolute(path);

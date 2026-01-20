@@ -25,6 +25,7 @@ private:
 class Utils
 {
 public:
+	static std::string ExpandPath(const std::string& path);
 	static std::string GetAbsoluteLocation(const std::string& path);
 	static std::string ProcessFlag(const std::string& flag);
 
