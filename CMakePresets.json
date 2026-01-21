@@ -115,7 +115,7 @@
             }
         },
         {
-            "name": "bsd-base",
+            "name": "freebsd-base",
             "hidden": true,
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/out/build/${presetName}",
@@ -131,27 +131,23 @@
                 "CMAKE_CURRENT_PRESET": "${presetName}"
             },
             "condition": {
-                "type": "or",
-                "conditions": [
-                    { "type": "equals", "args": ["${hostSystemName}", "FreeBSD"] },
-                    { "type": "equals", "args": ["${hostSystemName}", "NetBSD"] },
-                    { "type": "equals", "args": ["${hostSystemName}", "OpenBSD"] },
-                    { "type": "equals", "args": ["${hostSystemName}", "DragonFly"] }
-                ]
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "FreeBSD"
             }
         },
         {
-            "name": "bsd-debug",
+            "name": "freebsd-debug",
             "displayName": "BSD Debug",
-            "inherits": "bsd-base",
+            "inherits": "freebsd-base",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
-            "name": "bsd-release",
-            "displayName": "BSD Release",
-            "inherits": "bsd-debug",
+            "name": "freebsd-release",
+            "displayName": "FreeBSD Release",
+            "inherits": "freebsd-debug",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
