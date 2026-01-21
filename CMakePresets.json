@@ -133,10 +133,10 @@
             "condition": {
                 "type": "or",
                 "conditions": [
-                    { "type": "equals", "lhs": "${hostSystemName}", "rhs": "FreeBSD" },
-                    { "type": "equals", "lhs": "${hostSystemName}", "rhs": "NetBSD" },
-                    { "type": "equals", "lhs": "${hostSystemName}", "rhs": "OpenBSD" },
-                    { "type": "equals", "lhs": "${hostSystemName}", "rhs": "DragonFly" }
+                    { "type": "equals", "args": ["${hostSystemName}", "FreeBSD"] },
+                    { "type": "equals", "args": ["${hostSystemName}", "NetBSD"] },
+                    { "type": "equals", "args": ["${hostSystemName}", "OpenBSD"] },
+                    { "type": "equals", "args": ["${hostSystemName}", "DragonFly"] }
                 ]
             }
         },
