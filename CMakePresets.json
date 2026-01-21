@@ -113,6 +113,48 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
+        },
+        {
+            "name": "bsd-base",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "installDir": "${sourceDir}/out/install/${presetName}",
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+                "CMAKE_CURRENT_PRESET": "${presetName}"
+            },
+            "condition": {
+                "type": "or",
+                "conditions": [
+                    { "type": "equals", "lhs": "${hostSystemName}", "rhs": "FreeBSD" },
+                    { "type": "equals", "lhs": "${hostSystemName}", "rhs": "NetBSD" },
+                    { "type": "equals", "lhs": "${hostSystemName}", "rhs": "OpenBSD" },
+                    { "type": "equals", "lhs": "${hostSystemName}", "rhs": "DragonFly" }
+                ]
+            }
+        },
+        {
+            "name": "bsd-debug",
+            "displayName": "BSD Debug",
+            "inherits": "bsd-base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "bsd-release",
+            "displayName": "BSD Release",
+            "inherits": "bsd-debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
         }
     ]
 }
