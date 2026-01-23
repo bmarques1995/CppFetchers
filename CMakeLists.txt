@@ -4,6 +4,7 @@
 cmake_minimum_required (VERSION 3.22)
 
 option(FETCHER_BOOTSTRAP "Build minimal fetcher" OFF)
+option(USE_DEFAULT_PREFIX "Use default prefix" ON)
 
 # Habilite a Recarga Dinâmica para compiladores MSVC, se houver suporte.
 if (POLICY CMP0141)
@@ -13,8 +14,13 @@ endif()
 
 project("CppFetchers")
 
-list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX})
-list(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/lib64")
+if(USE_DEFAULT_PREFIX)
+	list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX})
+	list(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/lib64")
+else()
+	list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/temp")
+	list(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/temp/lib64")
+endif()
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_helpers")
 include(dep_tracer)
