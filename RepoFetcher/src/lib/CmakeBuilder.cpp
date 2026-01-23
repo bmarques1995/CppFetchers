@@ -79,13 +79,25 @@ void CmakeBuilder::GetCmakeGenCommandArgList(const nlohmann::json& data, std::ve
 	std::vector<std::string> flags = std::vector<std::string>();
 	if (data.contains("flags"))
 	{
-		flags = data["flags"].get<std::vector<std::string>>();
+		std::vector<std::string> rawFlags = data["flags"].get<std::vector<std::string>>();
+		for (auto it = rawFlags.begin(); it != rawFlags.end(); it++)
+		{
+			std::string flag = *it;
+			flag = Utils::ProcessFlag(flag);
+			flags.push_back(flag);
+		}
 	}
 	
 	if (data[osFieldPrefix][Utils::s_SystemName].contains("flags"))
 	{
 		std::vector<std::string> systemFlags = data[osFieldPrefix][Utils::s_SystemName]["flags"].get<std::vector<std::string>>();
-		flags.insert(flags.end(), systemFlags.begin(), systemFlags.end());
+		for (auto it = systemFlags.begin(); it != systemFlags.end(); it++)
+		{
+			std::string flag = *it;
+			flag = Utils::ProcessFlag(flag);
+			flags.push_back(flag);
+		}
+
 	}
 	
 	pathBuilder << moduleDestination << "/" << GitHandler::GetModuleInfix() << "/" << modulePathName;

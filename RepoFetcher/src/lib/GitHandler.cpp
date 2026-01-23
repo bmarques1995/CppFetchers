@@ -20,7 +20,7 @@ void GitHandler::ExecuteGitBatch(const nlohmann::json& data, const std::string& 
 	Placeholders::SetPlaceholder("msys_escaped_module_path", Utils::EscapeCharsForPath(Utils::WindowsPathToMsys(outputRepoDir)));
 #endif
 	outputRepoDirStream.str("");
-	if (!(data["git"]["commit"].is_null()))
+	if (data["git"].contains("commit"))
 	{
 		std::string commitHash = data["git"]["commit"].get<std::string>();
 		if (commitHash.compare("") != 0)
