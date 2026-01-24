@@ -56,13 +56,13 @@ void MesonBuilder::GenSolution(const nlohmann::json& data)
 	std::vector<std::string> buildArgs;
 	GetMesonGenCommandArgList(data, &buildArgs);
 	ProcessDispatcher::ExecuteCommand("meson", buildArgs, Placeholders::GetPlaceholder("modules_root"));
-	FileHandler::DeleteFileAt(Placeholders::GetPlaceholder("modules_root") + "/meson.ini");
 }
 
 void MesonBuilder::BuildAndInstallSolution(const nlohmann::json& data)
 {
 	ProcessDispatcher::ExecuteCommand("meson", { "compile", "-C", Placeholders::GetPlaceholder("module_build_path") });
 	ProcessDispatcher::ExecuteCommand("meson", { "install", "-C", Placeholders::GetPlaceholder("module_build_path")});
+	FileHandler::DeleteFileAt(Placeholders::GetPlaceholder("modules_root") + "/meson.ini");
 }
 
 void MesonBuilder::TreatMesonInfo(nlohmann::json* info, std::string buildMode, std::string installPrefix, std::string modulePathname)
