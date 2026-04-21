@@ -28,12 +28,31 @@ void CmakeBuilder::BuildAndInstallCmakeSolution(const nlohmann::json& data)
 {
 	std::string moduleDestination;
 	std::vector<std::string> buildArgs;
-	std::string buildPath = GetCmakeBuildCommandArgList
-	(
-		data,
-		&buildArgs
-	);
-	ProcessDispatcher::ExecuteCommand("cmake", buildArgs, buildPath);
+	std::string buildPath;
+	if (data.contains("targets"))
+	{
+		std::vector<std::string> targets = data["targets"].get<std::vector<std::string>>();
+		for (auto target : targets)
+		{
+			buildPath = GetCmakeBuildCommandArgList
+			(
+				data,
+				&buildArgs,
+				target
+			);
+			ProcessDispatcher::ExecuteCommand("cmake", buildArgs, buildPath);
+			buildArgs.clear();
+		}
+	}
+	else
+	{
+		buildPath = GetCmakeBuildCommandArgList
+		(
+			data,
+			&buildArgs
+		);
+		ProcessDispatcher::ExecuteCommand("cmake", buildArgs, buildPath);
+	}
 }
 
 void CmakeBuilder::TreatCmakeInfo(nlohmann::json* info, std::string buildMode, std::string installPrefix, std::string modulePathname)
@@ -61,7 +80,6 @@ void CmakeBuilder::GetCmakeGenCommandArgList(const nlohmann::json& data, std::ve
 	std::string buildMode = data["build_mode"].get<std::string>();
 	std::string installPrefix = data["install_prefix"].get<std::string>();
 	std::string generator = data["build_system"].get<std::string>();
-	std::string cachePrefetch = data["cache_prefetch"].get<std::string>();
 	if (data[osFieldPrefix].contains(Utils::s_SystemName))
 	{
 		if (data[osFieldPrefix][Utils::s_SystemName].contains("build_system"))
@@ -180,7 +198,7 @@ void CmakeBuilder::GetCmakeGenCommandArgList(const nlohmann::json& data, std::ve
 	buildArgs->push_back("--fresh");
 }
 
-std::string CmakeBuilder::GetCmakeBuildCommandArgList(const nlohmann::json& data, std::vector<std::string>* buildArgs)
+std::string CmakeBuilder::GetCmakeBuildCommandArgList(const nlohmann::json& data, std::vector<std::string>* buildArgs, const std::string& targetName)
 {
 	std::stringstream pathBuilder;
 	assert(!data["module_path_name"].is_null());
@@ -210,7 +228,7 @@ std::string CmakeBuilder::GetCmakeBuildCommandArgList(const nlohmann::json& data
 	}
 #endif
 	buildArgs->push_back("--target");
-	buildArgs->push_back("install");
+	buildArgs->push_back(targetName);
 	if (generator.compare("ninja") == 0)
 	{
 		buildArgs->push_back("--parallel");

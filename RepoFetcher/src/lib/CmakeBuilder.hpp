@@ -14,7 +14,7 @@ public:
 
 private:
 	static void GetCmakeGenCommandArgList(const nlohmann::json& data, std::vector<std::string>* buildArgs);
-	static std::string GetCmakeBuildCommandArgList(const nlohmann::json& data, std::vector<std::string>* buildArgs);
+	static std::string GetCmakeBuildCommandArgList(const nlohmann::json& data, std::vector<std::string>* buildArgs, const std::string& targetName = "install");
 
 	static void AppendFlags(std::vector<std::string>* buildArgs, const std::vector<std::string>& flags);
 };
