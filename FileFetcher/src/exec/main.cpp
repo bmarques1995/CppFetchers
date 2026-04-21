@@ -24,7 +24,7 @@ std::string expand_home()
 int main(int argc, char* argv[])
 {
     
-    if(argc < 3)
+    if(argc != 3)
 	{
 		std::cerr << "Usage: " << argv[0] << " <input_file> <working_dir>" << std::endl;
 		return 65;

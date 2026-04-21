@@ -1,5 +1,6 @@
 #include "CmakeBuilder.hpp"
 #include "ProcessDispatcher.hpp"
+#include "Placeholders.hpp"
 #include <sstream>
 #include <iostream>
 #include "GitHandler.hpp"
@@ -60,6 +61,7 @@ void CmakeBuilder::GetCmakeGenCommandArgList(const nlohmann::json& data, std::ve
 	std::string buildMode = data["build_mode"].get<std::string>();
 	std::string installPrefix = data["install_prefix"].get<std::string>();
 	std::string generator = data["build_system"].get<std::string>();
+	std::string cachePrefetch = data["cache_prefetch"].get<std::string>();
 	if (data[osFieldPrefix].contains(Utils::s_SystemName))
 	{
 		if (data[osFieldPrefix][Utils::s_SystemName].contains("build_system"))
@@ -101,6 +103,7 @@ void CmakeBuilder::GetCmakeGenCommandArgList(const nlohmann::json& data, std::ve
 	}
 	
 	pathBuilder << moduleDestination << "/" << GitHandler::GetModuleInfix() << "/" << modulePathName;
+	Placeholders::SetPlaceholder("repo_path", pathBuilder.str());
 	if (relativeRootLocation.length() > 0)
 	{
 		pathBuilder << "/" << relativeRootLocation;
@@ -132,6 +135,13 @@ void CmakeBuilder::GetCmakeGenCommandArgList(const nlohmann::json& data, std::ve
 		buildArgs->push_back(generator.data());
 	}
 	
+	if(data.contains("cache_prefetch"))
+	{
+		std::string cachePrefetch = Utils::ProcessPlaceholders(data["cache_prefetch"].get<std::string>());
+		buildArgs->push_back("-C");
+		buildArgs->push_back(cachePrefetch);
+	}
+
 #ifdef WIN32
 	commandStream << "-DCMAKE_INSTALL_PREFIX=\"" << installPrefix.data() << "\"";
 	buildArgs->push_back(commandStream.str());
@@ -167,6 +177,7 @@ void CmakeBuilder::GetCmakeGenCommandArgList(const nlohmann::json& data, std::ve
 			buildArgs->push_back("-DCMAKE_CXX_COMPILER=" + data[osFieldPrefix][Utils::s_SystemName]["cxx_compiler"].get<std::string>());
 		}
 	}
+	buildArgs->push_back("--fresh");
 }
 
 std::string CmakeBuilder::GetCmakeBuildCommandArgList(const nlohmann::json& data, std::vector<std::string>* buildArgs)

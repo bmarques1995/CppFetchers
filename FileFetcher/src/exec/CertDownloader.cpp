@@ -87,7 +87,7 @@ void CertDownloader::AssertCertHash(std::string_view certLocation)
     std::string certHash = GetCertHash(certLocation);
     if(expectedHash.compare(certHash) != 0)
     {
-        throw InvalidCert();
+		throw InvalidCert();
 	}
 }
 
@@ -110,6 +110,8 @@ std::string CertDownloader::GetCertHash(std::string_view certLocation)
 
 std::string CertDownloader::Digest(const std::string& data)
 {
+    if(data.length() == 0)
+		return "";
     EVP_MD_CTX_ptr context(EVP_MD_CTX_new());
     if (!context) {
         throw std::runtime_error("Failed to create EVP_MD_CTX");

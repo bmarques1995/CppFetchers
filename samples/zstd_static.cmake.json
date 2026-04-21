@@ -10,7 +10,7 @@
   "cmake": {
     "build_system": "default",
     "relative_root_location": "build/cmake",
-    "flags": [ "BUILD_SHARED_LIBS=OFF" ],
+    "flags": [ "ZSTD_BUILD_SHARED=OFF" ],
     "os_properties": {
       "windows": {
         "c_compiler": "cl",
