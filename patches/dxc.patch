@@ -1,0 +1,60 @@
+From 9b44a2f1653289c6c0c4a535e8088334f7fd9a8d Mon Sep 17 00:00:00 2001
+From: Bruno Marques <brunosmarques1995@hotmail.com>
+Date: Tue, 21 Apr 2026 15:24:32 -0300
+Subject: [PATCH] patch
+
+---
+ tools/clang/tools/dxcompiler/CMakeLists.txt | 12 +++++-------
+ tools/clang/tools/dxildll/CMakeLists.txt    | 14 ++++++++++++++
+ 2 files changed, 19 insertions(+), 7 deletions(-)
+
+diff --git a/tools/clang/tools/dxcompiler/CMakeLists.txt b/tools/clang/tools/dxcompiler/CMakeLists.txt
+index 26bf0e5d9..19da043b9 100644
+--- a/tools/clang/tools/dxcompiler/CMakeLists.txt
++++ b/tools/clang/tools/dxcompiler/CMakeLists.txt
+@@ -151,14 +151,12 @@ set_target_properties(dxcompiler
+   VERSION ${LIBCLANG_LIBRARY_VERSION}
+   DEFINE_SYMBOL _CINDEX_LIB_)
+ 
+-if (WIN32)
+-  set(install_dest RUNTIME DESTINATION bin)
+-else()
+-  set(install_dest LIBRARY DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+-endif()
+-
+ install(TARGETS dxcompiler
+-  ${install_dest}
++  RUNTIME DESTINATION bin
++  COMPONENT dxcompiler
++  ARCHIVE DESTINATION lib
++  COMPONENT dxcompiler
++  LIBRARY DESTINATION lib
+   COMPONENT dxcompiler)
+ 
+ add_custom_target(install-dxcompiler
+diff --git a/tools/clang/tools/dxildll/CMakeLists.txt b/tools/clang/tools/dxildll/CMakeLists.txt
+index 67a24d110..4193eeb84 100644
+--- a/tools/clang/tools/dxildll/CMakeLists.txt
++++ b/tools/clang/tools/dxildll/CMakeLists.txt
+@@ -84,3 +84,17 @@ set_target_properties(dxildll
+   PROPERTIES
+   OUTPUT_NAME "dxil"
+ )
++
++install(TARGETS dxildll
++  RUNTIME DESTINATION bin
++  COMPONENT dxildll
++  ARCHIVE DESTINATION lib
++  COMPONENT dxildll
++  LIBRARY DESTINATION lib
++  COMPONENT dxildll)
++
++add_custom_target(install-dxil
++  DEPENDS dxildll
++  COMMAND "${CMAKE_COMMAND}"
++          -DCMAKE_INSTALL_COMPONENT=dxildll
++          -P "${CMAKE_BINARY_DIR}/cmake_install.cmake")
+\ No newline at end of file
+-- 
+2.53.0.windows.3
+

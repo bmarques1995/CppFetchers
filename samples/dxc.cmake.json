@@ -1,0 +1,34 @@
+{
+    "git": {
+        "location": "https://github.com/microsoft/DirectXShaderCompiler.git",
+        "output_suffix": "dxc",
+        "branch": "release-1.9.2602",
+        "commit": "44fd4c7d09f2046dfe5b723f67791bb43312030f",
+        "patch": "dxc.patch"
+    },
+    "cmake": {
+        "build_system": "ninja",
+        "relative_root_location": "",
+        "flags": [ "ENABLE_SPIRV_CODEGEN=ON" ],
+        "cache_prefetch": "{repo_path}/cmake/caches/PredefinedParams.cmake",
+        "targets": [ "install-dxc", "install-dxcompiler", "install-dxc-headers", "install-dxil" ],
+        "os_properties": {
+            "windows": {
+                "c_compiler": "cl",
+                "cxx_compiler": "cl"
+            },
+            "linux": {
+                "c_compiler": "clang",
+                "cxx_compiler": "clang++"
+            },
+            "macos": {
+                "c_compiler": "clang",
+                "cxx_compiler": "clang++"
+            },
+            "freebsd": {
+                "c_compiler": "clang",
+                "cxx_compiler": "clang++"
+            }
+        }
+    }
+}
